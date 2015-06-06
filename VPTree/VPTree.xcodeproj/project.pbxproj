@@ -13,6 +13,9 @@
 		6FA8D8091B23419000821B73 /* VPNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D8081B23419000821B73 /* VPNode.swift */; };
 		6FA8D80B1B2341A200821B73 /* VPTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D80A1B2341A200821B73 /* VPTree.swift */; };
 		6FA8D80F1B23449600821B73 /* PriorityQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D80E1B23449600821B73 /* PriorityQueue.swift */; };
+		6FA8D8101B235A0600821B73 /* VPNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D8081B23419000821B73 /* VPNode.swift */; };
+		6FA8D8111B235A0700821B73 /* VPTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D80A1B2341A200821B73 /* VPTree.swift */; };
+		6FA8D8121B235A0900821B73 /* PriorityQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D80E1B23449600821B73 /* PriorityQueue.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -228,7 +231,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6FA8D8121B235A0900821B73 /* PriorityQueue.swift in Sources */,
 				6FA8D7FF1B23417E00821B73 /* VPTreeTests.swift in Sources */,
+				6FA8D8101B235A0600821B73 /* VPNode.swift in Sources */,
+				6FA8D8111B235A0700821B73 /* VPTree.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

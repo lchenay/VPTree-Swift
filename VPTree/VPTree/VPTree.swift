@@ -3,50 +3,51 @@ import Foundation
 infix operator ~~ {
 }
 
-protocol Distance {
-    func ~~(lhs: Self, rhs: Self) -> Int
+public protocol Distance {
+    func ~~(lhs: Self, rhs: Self) -> Double
 }
 
-class VPTree<T: Distance> {
-    var firstNode: VPNode<T>
+public class VPTree<T: Distance> {
+    internal var firstNode: VPNode<T>
     
     init(elements: [T]) {
-        firstNode = VPNode<T>(elements: elements);
+        firstNode = VPNode<T>(elements: elements)!;
     }
     
-    private func _neighbors(point: T, limit: Int?, maxDistance: Int? = nil) -> [T] {
-        var tau: Int? = maxDistance
-        var nodesToTest: [VPNode<T>] = [firstNode]
+    private func _neighbors(point: T, limit: Int?, maxDistance: Double? = nil) -> [T] {
+        var tau: Double = maxDistance ?? Double.infinity
+        var nodesToTest: [VPNode<T>?] = [firstNode]
         
         var neighbors = PriorityQueue<T>(limit: limit)
         
         while(nodesToTest.count > 0) {
-            let node = nodesToTest.removeAtIndex(0)
-            let d = point ~~ node.vpPoint
-            if tau == nil || d < tau! {
-                neighbors.push(d, item: node.vpPoint)
-                if maxDistance == nil {
-                    tau = neighbors.biggestWeigth
+            if let node = nodesToTest.removeAtIndex(0) {
+                let d = point ~~ node.vpPoint
+                if d <= tau {
+                    neighbors.push(d, item: node.vpPoint)
+                    if maxDistance == nil {
+                        tau = neighbors.biggestWeigth
+                    }
                 }
-            }
-            
-            if node.isLeaf {
-                continue
-            }
-            
-            if d < node.mu! {
-                if d < node.mu! + tau! {
-                    nodesToTest.append(node.leftChild!)
+                
+                if node.isLeaf {
+                    continue
                 }
-                if d >= node.mu! - tau! {
-                    nodesToTest.append(node.rightChild!)
-                }
-            } else {
-                if d >= node.mu! - tau! {
-                    nodesToTest.append(node.rightChild!)
-                }
-                if d < node.mu! + tau! {
-                    nodesToTest.append(node.leftChild!)
+                
+                if d < node.mu! {
+                    if d < node.mu! + tau {
+                        nodesToTest.append(node.leftChild!)
+                    }
+                    if d >= node.mu! - tau {
+                        nodesToTest.append(node.rightChild!)
+                    }
+                } else {
+                    if d >= node.mu! - tau  {
+                        nodesToTest.append(node.rightChild!)
+                    }
+                    if d < node.mu! + tau {
+                        nodesToTest.append(node.leftChild!)
+                    }
                 }
             }
         }
@@ -58,7 +59,7 @@ class VPTree<T: Distance> {
         return _neighbors(point, limit: limit, maxDistance: nil)
     }
     
-    func findClosest(point: T, maxDistance: Int) -> [T] {
+    func findClosest(point: T, maxDistance: Double) -> [T] {
         return _neighbors(point, limit: nil, maxDistance: maxDistance)
     }
 }
