@@ -16,6 +16,9 @@
 		6FA8D8101B235A0600821B73 /* VPNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D8081B23419000821B73 /* VPNode.swift */; };
 		6FA8D8111B235A0700821B73 /* VPTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D80A1B2341A200821B73 /* VPTree.swift */; };
 		6FA8D8121B235A0900821B73 /* PriorityQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D80E1B23449600821B73 /* PriorityQueue.swift */; };
+		6FA8D8141B24996E00821B73 /* ArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D8131B24996E00821B73 /* ArrayTests.swift */; };
+		6FA8D8161B2499B000821B73 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D8151B2499B000821B73 /* Array.swift */; };
+		6FA8D8171B249CFF00821B73 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FA8D8151B2499B000821B73 /* Array.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +41,8 @@
 		6FA8D8081B23419000821B73 /* VPNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VPNode.swift; sourceTree = "<group>"; };
 		6FA8D80A1B2341A200821B73 /* VPTree.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VPTree.swift; sourceTree = "<group>"; };
 		6FA8D80E1B23449600821B73 /* PriorityQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PriorityQueue.swift; sourceTree = "<group>"; };
+		6FA8D8131B24996E00821B73 /* ArrayTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayTests.swift; sourceTree = "<group>"; };
+		6FA8D8151B2499B000821B73 /* Array.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +90,7 @@
 				6FA8D8081B23419000821B73 /* VPNode.swift */,
 				6FA8D80A1B2341A200821B73 /* VPTree.swift */,
 				6FA8D80E1B23449600821B73 /* PriorityQueue.swift */,
+				6FA8D8151B2499B000821B73 /* Array.swift */,
 			);
 			path = VPTree;
 			sourceTree = "<group>";
@@ -100,6 +106,7 @@
 		6FA8D7FB1B23417E00821B73 /* VPTreeTests */ = {
 			isa = PBXGroup;
 			children = (
+				6FA8D8131B24996E00821B73 /* ArrayTests.swift */,
 				6FA8D7FE1B23417E00821B73 /* VPTreeTests.swift */,
 				6FA8D7FC1B23417E00821B73 /* Supporting Files */,
 			);
@@ -222,6 +229,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6FA8D8091B23419000821B73 /* VPNode.swift in Sources */,
+				6FA8D8161B2499B000821B73 /* Array.swift in Sources */,
 				6FA8D80F1B23449600821B73 /* PriorityQueue.swift in Sources */,
 				6FA8D80B1B2341A200821B73 /* VPTree.swift in Sources */,
 			);
@@ -231,8 +239,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6FA8D8141B24996E00821B73 /* ArrayTests.swift in Sources */,
 				6FA8D8121B235A0900821B73 /* PriorityQueue.swift in Sources */,
 				6FA8D7FF1B23417E00821B73 /* VPTreeTests.swift in Sources */,
+				6FA8D8171B249CFF00821B73 /* Array.swift in Sources */,
 				6FA8D8101B235A0600821B73 /* VPNode.swift in Sources */,
 				6FA8D8111B235A0700821B73 /* VPTree.swift in Sources */,
 			);
