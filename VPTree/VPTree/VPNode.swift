@@ -1,5 +1,19 @@
 import Foundation
 
+private func <<T>(left: Point<T>, right: Point<T>) -> Bool {
+    return left.d < right.d
+}
+
+private func ==<T>(left: Point<T>, right: Point<T>) -> Bool {
+    return left.d == right.d
+}
+
+private struct Point<T>: Comparable {
+    let d: Double
+    let point: T
+}
+
+
 internal class VPNode<T: Distance> {
     var vpPoint: T!
     var mu: Double?
@@ -22,12 +36,16 @@ internal class VPNode<T: Distance> {
             return
         }
         
-        let distances = elements.map { return (d: $0 ~~ self.vpPoint, point: $0) } .sorted { return $0.d < $1.d }
-        let median = Int(ceil(Double(distances.count) / 2.0)) - 1
+        let array: [Point<T>] = elements.map {
+            (item: T) -> Point<T> in
+            return Point<T>(d: item ~~ self.vpPoint, point: item)
+        }
+
+        let (left: [Point<T>], right: [Point<T>]) = array.splitByMedian()
         
-        mu = distances[median].d
-        leftChild = VPNode(elements: distances[0..<median].map { return $0.point })
-        rightChild = VPNode(elements: distances[median..<distances.count].map { return $0.point })
+        mu = left.last!.d
+        leftChild = VPNode(elements: left.map { return $0.point })
+        rightChild = VPNode(elements: right.map { return $0.point })
     }
     
     var isLeaf: Bool {

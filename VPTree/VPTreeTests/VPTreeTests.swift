@@ -10,13 +10,10 @@ extension CGPoint: Distance {
 }
 
 func hammingWeight(x: UInt64) -> Int {
-    var x = x
-    var count = 0;
-    while(x != 0) {
-        x &= x - 1
-        count++
-    }
-    return count;
+    var i = x
+    i = i - ((i >> 1) & 0x55555555);
+    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+    return Int((((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24)
 }
 
 func random64() -> UInt64 {
@@ -60,7 +57,6 @@ class VPTreeTests: XCTestCase {
         
         let founds = tree.findNeighbors(p4, limit: 3)
         
-        println(founds)
         XCTAssertEqual(founds.count, 3)
 
     }
