@@ -36,17 +36,17 @@ public class VPTree<T: Distance> {
                 
                 if d < node.mu! {
                     if d < node.mu! + tau {
-                        nodesToTest.append(node.leftChild!)
+                        nodesToTest.append(node.leftChild)
                     }
                     if d >= node.mu! - tau {
-                        nodesToTest.append(node.rightChild!)
+                        nodesToTest.append(node.rightChild)
                     }
                 } else {
                     if d >= node.mu! - tau  {
-                        nodesToTest.append(node.rightChild!)
+                        nodesToTest.append(node.rightChild)
                     }
                     if d < node.mu! + tau {
-                        nodesToTest.append(node.leftChild!)
+                        nodesToTest.append(node.leftChild)
                     }
                 }
             }

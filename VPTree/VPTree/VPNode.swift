@@ -23,7 +23,7 @@ internal class VPNode<T: Distance> {
         }
         
         let distances = elements.map { return (d: $0 ~~ self.vpPoint, point: $0) } .sorted { return $0.d < $1.d }
-        let median = Int(ceil(Double(distances.count) / 2.0))
+        let median = Int(ceil(Double(distances.count) / 2.0)) - 1
         
         mu = distances[median].d
         leftChild = VPNode(elements: distances[0..<median].map { return $0.point })

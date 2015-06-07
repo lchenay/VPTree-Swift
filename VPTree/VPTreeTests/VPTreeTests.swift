@@ -9,6 +9,35 @@ extension CGPoint: Distance {
     
 }
 
+func hammingWeight(x: UInt64) -> Int {
+    var x = x
+    var count = 0;
+    while(x != 0) {
+        x &= x - 1
+        count++
+    }
+    return count;
+}
+
+func random64() -> UInt64 {
+    var rnd : UInt64 = 0
+    arc4random_buf(&rnd, Int(sizeofValue(rnd)))
+    return rnd
+}
+
+public func ~~(left: Photo, right: Photo) -> Double {
+    return Double(hammingWeight(left.pHash^right.pHash))
+}
+
+public class Photo: Distance {
+    let id: Int
+    let pHash: UInt64
+    init(id: Int, pHash: UInt64) {
+        self.id = id
+        self.pHash = pHash
+    }
+}
+
 class VPTreeTests: XCTestCase {
     
     override func setUp() {
@@ -50,11 +79,17 @@ class VPTreeTests: XCTestCase {
         
     }
     
-    /*func testPerformanceExample() {
-        // This is an example of a performance test case.
+    func testPerformanceOfHamming() {
         self.measureBlock() {
-            // Put the code you want to measure the time of here.
+            var photos = [Photo]()
+            
+            for (var i = 0 ; i < 25000 ; i++) {
+                photos.append(Photo(id: i, pHash: random64()))
+            }
+            
+            let tree = VPTree(elements: photos)
+            
         }
-    }*/
+    }
     
 }
