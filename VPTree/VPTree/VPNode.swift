@@ -8,14 +8,19 @@ private func ==<T>(left: Point<T>, right: Point<T>) -> Bool {
     return left.d == right.d
 }
 
-private struct Point<T>: Comparable {
-    let d: Double
+private class Point<T>: Comparable {
+    var d: Double
     let point: T
+    
+    init(d: Double, point: T) {
+        self.d = d
+        self.point = point
+    }
 }
-
 
 internal class VPNode<T: Distance> {
     var vpPoint: T!
+    var points: [T] = []
     var mu: Double?
     var leftChild: VPNode<T>?
     var rightChild: VPNode<T>?
@@ -24,28 +29,40 @@ internal class VPNode<T: Distance> {
         self.init(elements: [T](elements))
     }
     
-    init?(elements: [T]) {
+    private func convertion (item: Point<T>) -> T {
+        return item.point
+    }
+    
+    convenience init?(elements: [T]) {
+        let array: [Point<T>] = elements.map {
+            (item: T) -> Point<T> in
+            return Point<T>(d: 0, point: item)
+        }
+        
+        self.init(elements: array)
+    }
+    
+    private init?(elements: [Point<T>]) {
         if elements.count == 0 {
             return nil
         }
         var elements = elements
         //Random get of the VP points
-        self.vpPoint = elements.removeAtIndex(0)
+        self.vpPoint = elements.removeAtIndex(0).point
         
         if elements.count == 0 {
             return
         }
         
-        let array: [Point<T>] = elements.map {
-            (item: T) -> Point<T> in
-            return Point<T>(d: item ~~ self.vpPoint, point: item)
+        for item in elements {
+            item.d = item.point ~~ self.vpPoint
         }
-
-        let (left: [Point<T>], right: [Point<T>]) = array.splitByMedian()
+        
+        let (left: [Point<T>], right: [Point<T>]) = elements.splitByMedian()
         
         mu = left.last!.d
-        leftChild = VPNode(elements: left.map { return $0.point })
-        rightChild = VPNode(elements: right.map { return $0.point })
+        leftChild = VPNode(elements: left)
+        rightChild = VPNode(elements: right)
     }
     
     var isLeaf: Bool {
