@@ -58,11 +58,15 @@ internal class VPNode<T: Distance> {
             item.d = item.point ~~ self.vpPoint
         }
         
-        let (left: [Point<T>], right: [Point<T>]) = elements.splitByMedian()
+        let (left, right): ([Point<T>], [Point<T>]) = elements.splitByMedian()
         
         mu = left.last!.d
         leftChild = VPNode(elements: left)
         rightChild = VPNode(elements: right)
+    }
+    
+    private func addElement(element: Point<T>) {
+        
     }
     
     var isLeaf: Bool {

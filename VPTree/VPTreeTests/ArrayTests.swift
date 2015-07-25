@@ -22,16 +22,16 @@ class ArrayTests: XCTestCase {
     }
     
     func testSplit() {
-        var array: Array<Int> = [2, 1, 3, 5, 4, 6, 7];
-        let (left: [Int], right: [Int]) = array.splitByMedian()
+        let array: Array<Int> = [2, 1, 3, 5, 4, 6, 7];
+        let (left, right): ([Int], [Int]) = array.splitByMedian()
         
-        XCTAssertTrue(find(left, 1) != nil)
-        XCTAssertTrue(find(left, 2) != nil)
-        XCTAssertTrue(find(left, 3) != nil)
-        XCTAssertTrue(find(left, 4) != nil)
+        XCTAssertTrue(left.indexOf(1) != nil)
+        XCTAssertTrue(left.indexOf(2) != nil)
+        XCTAssertTrue(left.indexOf(3) != nil)
+        XCTAssertTrue(left.indexOf(4) != nil)
         
-        XCTAssertTrue(find(right, 5) != nil)
-        XCTAssertTrue(find(right, 6) != nil)
-        XCTAssertTrue(find(right, 7) != nil)
+        XCTAssertTrue(right.indexOf(5) != nil)
+        XCTAssertTrue(right.indexOf(6) != nil)
+        XCTAssertTrue(right.indexOf(7) != nil)
     }
 }

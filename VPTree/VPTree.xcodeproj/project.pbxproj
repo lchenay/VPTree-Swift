@@ -177,6 +177,8 @@
 		6FA8D7E31B23417E00821B73 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0700;
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0640;
 				ORGANIZATIONNAME = Sunday;
 				TargetAttributes = {
@@ -430,6 +432,7 @@
 				6FA8D8041B23417E00821B73 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		6FA8D8051B23417E00821B73 /* Build configuration list for PBXNativeTarget "VPTreeTests" */ = {
 			isa = XCConfigurationList;
@@ -438,6 +441,7 @@
 				6FA8D8071B23417E00821B73 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -81,10 +81,8 @@ class VPTreeTests: XCTestCase {
             
             for (var i = 0 ; i < 25000 ; i++) {
                 photos.append(Photo(id: i, pHash: random64()))
+                let tree = VPTree(elements: photos)
             }
-            
-            let tree = VPTree(elements: photos)
-            
         }
     }
     

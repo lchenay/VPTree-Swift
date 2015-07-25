@@ -52,10 +52,10 @@ private func split<T: Comparable>(inout array: [T], nbItemLeft: Int, nbItemRight
     }
     
     if left.count > nbItemLeft {
-        let (subLeft: [T], subRight: [T]) = split(&left, nbItemLeft, nbItemRight - right.count)
+        let (subLeft, subRight): ([T], [T]) = split(&left, nbItemLeft: nbItemLeft, nbItemRight: nbItemRight - right.count)
         return (subLeft, right + subRight)
     } else if right.count > nbItemRight {
-        let (subLeft: [T], subRight: [T]) = split(&right, nbItemLeft - left.count, nbItemRight)
+        let (subLeft, subRight): ([T], [T]) = split(&right, nbItemLeft: nbItemLeft - left.count, nbItemRight: nbItemRight)
         return (left + subLeft, subRight)
     } else {
         return (left, right)
@@ -66,6 +66,6 @@ internal extension Array {
     internal func splitByMedian<T where T: Comparable>() -> ([T], [T]) {
         let mid = count / 2
         var array: Array<T> = self.map {return $0 as! T}
-        return split(&array, count-mid, mid)
+        return split(&array, nbItemLeft: count-mid, nbItemRight: mid)
     }
 }

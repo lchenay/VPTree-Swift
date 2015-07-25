@@ -18,7 +18,7 @@ public class VPTree<T: Distance> {
         var tau: Double = maxDistance ?? Double.infinity
         var nodesToTest: [VPNode<T>?] = [firstNode]
         
-        var neighbors = PriorityQueue<T>(limit: limit)
+        let neighbors = PriorityQueue<T>(limit: limit)
         
         while(nodesToTest.count > 0) {
             if let node = nodesToTest.removeAtIndex(0) {
