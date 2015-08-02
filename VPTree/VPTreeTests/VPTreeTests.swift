@@ -53,7 +53,11 @@ class VPTreeTests: XCTestCase {
         let p3 = CGPoint(x: 1, y: 0)
         let p4 = CGPoint(x: 0, y: 1)
         
-        let tree = VPTree(elements: [p1, p2, p3])
+        let tree = VPTree<CGPoint>(elements: [])
+        tree.addElement(p1)
+        tree.addElement(p2)
+        tree.addElement(p3)
+        tree.addElement(p4)
         
         let founds = tree.findNeighbors(p4, limit: 3)
         
@@ -77,11 +81,12 @@ class VPTreeTests: XCTestCase {
     
     func testPerformanceOfHamming() {
         self.measureBlock() {
-            var photos = [Photo]()
-            
-            for (var i = 0 ; i < 25000 ; i++) {
-                photos.append(Photo(id: i, pHash: random64()))
-                let tree = VPTree(elements: photos)
+            NSLog("start")
+            let tree = VPTree<Photo>(elements: [])
+            for (var i = 0 ; i < 20000 ; i++) {
+                let photo = Photo(id: i, pHash: random64());
+                tree.addElement(photo)
+                let founds = tree.findClosest(photo, maxDistance: 15.0)
             }
         }
     }
