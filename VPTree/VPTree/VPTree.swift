@@ -1,12 +1,13 @@
 import Foundation
 
 infix operator ~~ {
-    precedence 140
+precedence 140
 }
 
 public protocol Distance {
     func ~~(lhs: Self, rhs: Self) -> Double
 }
+
 
 private func <<T>(left: Point<T>, right: Point<T>) -> Bool {
     return left.d < right.d
@@ -28,18 +29,26 @@ private struct Point<T>: Comparable {
 
 internal enum VPNode<T: Distance> {
     case Leaf([T])
-    indirect case Node(T, Double, VPNode<T>, VPNode)
+    indirect case Node(T, [Double], [VPNode<T>])
 }
-
-
 
 public class VPTree<T: Distance> {
     internal var firstNode: VPNode<T>
     
-    let maxLeafElements = 25
+    let maxLeafElements: Int
+    let branchingFactor: Int
     
-    init(elements: [T]) {
-        firstNode = VPNode.Leaf([])
+    init(maxLeafElements: Int, branchingFactor: Int) {
+        if (maxLeafElements < branchingFactor) {
+            fatalError("maxLeafElements can not be lower than branchingFactor")
+        }
+        self.maxLeafElements = maxLeafElements
+        self.branchingFactor = branchingFactor
+        self.firstNode = VPNode.Leaf([])
+    }
+    
+    convenience init(elements: [T]) {
+        self.init(maxLeafElements: 80, branchingFactor: 7)
         self.addElements(elements)
     }
     
@@ -52,58 +61,71 @@ public class VPTree<T: Distance> {
     }
     
     private func addElements(points: [T], node: VPNode<T>) -> VPNode<T> {
+        let pointsCount = points.count
+        if pointsCount == 0 {
+            return node
+        }
         switch node {
         case .Leaf(var elements):
-            if elements.count + points.count <= maxLeafElements {
-                let count = points.count
-                for var i = 0 ; i < count ; i++ {
-                    elements.append(points[i])
-                }
+            if elements.count + pointsCount <= maxLeafElements {
+                elements.extend(points)
                 return .Leaf(elements)
             } else {
                 var allElements = (points + elements)
+                //Random get of the VP points
                 let vpPoint = allElements.removeAtIndex(0)
                 
-                let points: [Point<T>] = allElements.map {
+                var points: [Point<T>] = allElements.map {
                     (item: T) -> Point<T> in
                     return Point<T>(d: item ~~ vpPoint, point: item)
                 }
-                //Random get of the VP points
-                let (left, right): ([Point<T>], [Point<T>]) = points.splitByMedian()
-                let mu = left.last!.d
+                var childs = [VPNode<T>]()
+                var mu = [Double]()
                 
-                let leftChild = addElements(left.map {$0.point}, node: VPNode<T>.Leaf([]))
-                let rightChild = addElements(right.map {$0.point}, node: VPNode<T>.Leaf([]))
+                for var i = 0 ; i < branchingFactor - 1 ; i++ {
+                    let count = points.count
+                    let nbItemLeft = count / (branchingFactor - i)
+                    let (left, right) = split(points, nbItemLeft: nbItemLeft, nbItemRight: count-nbItemLeft)
+                    points = right
+                    mu.append(left.last!.d)
+                    childs.append(addElements(left.map {$0.point}, node: VPNode<T>.Leaf([])))
+                }
+                childs.append(addElements(points.map {$0.point}, node: VPNode<T>.Leaf([])))
+                mu.append(Double.infinity)
                 
-                return VPNode<T>.Node(vpPoint, mu, leftChild, rightChild)
+                return VPNode<T>.Node(vpPoint, mu, childs)
             }
-        case .Node(let vpPoint, let mu, let leftChild, let rightChild):
-            var toAddLeft = [T]()
-            var toAddRight = [T]()
-            let count = points.count
-            for var i = 0 ; i < count ; i++ {
+        case .Node(let vpPoint, let mus, var childs):
+            var toAddInNodes = Array<Array<T>>(count: branchingFactor, repeatedValue: Array<T>())
+            
+            for var i = 0 ; i < pointsCount ; i++ {
                 let point = points[i]
-                if (point ~~ vpPoint) < mu {
-                    toAddRight.append(point)
-                } else {
-                    toAddLeft.append(point)
+                let d = point ~~ vpPoint
+                for var j = 0 ; j < branchingFactor ; j++ {
+                    let mu = mus[j]
+                    if d <= mu {
+                        toAddInNodes[j].append(point)
+                        break
+                    }
                 }
             }
             
-            return VPNode<T>.Node(
-                vpPoint, mu, addElements(toAddLeft, node: leftChild), addElements(toAddRight, node: rightChild)
-            )
+            for var i = 0 ; i < branchingFactor ; i++ {
+                childs[i] = addElements(toAddInNodes[i], node: childs[i])
+            }
+            
+            return VPNode<T>.Node(vpPoint, mus, childs)
         }
     }
     
     private func _neighbors(point: T, limit: Int?, maxDistance: Double? = nil) -> [T] {
         var tau: Double = maxDistance ?? Double.infinity
-        var nodesToTest: [VPNode<T>?] = [firstNode]
+        var nodesToTest: [VPNode<T>] = [firstNode]
         
         let neighbors = PriorityQueue<T>(limit: limit)
         
         while(nodesToTest.count > 0) {
-            let node = nodesToTest.removeAtIndex(0)!
+            let node = nodesToTest.removeAtIndex(0)
             switch(node) {
             case .Leaf(let elements):
                 let count = elements.count
@@ -111,46 +133,43 @@ public class VPTree<T: Distance> {
                     let element = elements[i]
                     let d = point ~~ element
                     if d <= tau {
-                        neighbors.push(d, item: point)
+                        neighbors.push(d, item: element)
                         if maxDistance == nil {
                             tau = neighbors.biggestWeigth
                         }
                     }
                 }
-            case .Node(let vpPoint, let mu, let leftChild, let rightChild):
-                let d = point ~~ vpPoint
-                if d <= tau {
-                    neighbors.push(d, item: vpPoint)
+            case .Node(let vpPoint, let mus, let childs):
+                let dist = point ~~ vpPoint
+                if dist <= tau {
+                    neighbors.push(dist, item: vpPoint)
                     if maxDistance == nil {
                         tau = neighbors.biggestWeigth
                     }
                 }
+                var i = 0
+                for ; i < branchingFactor - 1 ; i++ {
+                    if tau + mus[i] >= dist {
+                        break
+                    }
+                }
                 
-                if d < mu {
-                    if d < mu + tau {
-                        nodesToTest.append(leftChild)
-                    }
-                    if d >= mu - tau {
-                        nodesToTest.append(rightChild)
-                    }
-                } else {
-                    if d >= mu - tau  {
-                        nodesToTest.append(rightChild)
-                    }
-                    if d < mu + tau {
-                        nodesToTest.append(leftChild)
+                for ; i < branchingFactor ; i++ {
+                    nodesToTest.append(childs[i])
+                    if (tau + dist < mus[i]) {
+                        break;
                     }
                 }
             }
         }
-        
+
         return neighbors.items
     }
-    
+
     func findNeighbors(point: T, limit: Int) -> [T] {
         return _neighbors(point, limit: limit, maxDistance: nil)
     }
-    
+
     func findClosest(point: T, maxDistance: Double) -> [T] {
         return _neighbors(point, limit: nil, maxDistance: maxDistance)
     }

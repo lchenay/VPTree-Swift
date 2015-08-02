@@ -79,16 +79,32 @@ class VPTreeTests: XCTestCase {
         
     }
     
+    func testTryBest() {
+        for var j = 2; j < 30 ; j++ {
+            for var i = j ; i < 200 ; i += 5 {
+                let start = NSDate()
+                
+                let tree = VPTree<Photo>(maxLeafElements: i, branchingFactor: j)
+                for (var i = 0 ; i < 25000 ; i++) {
+                    let photo = Photo(id: i, pHash: random64());
+                    tree.addElement(photo)
+                    tree.findClosest(photo, maxDistance: 21)
+                }
+                
+                print("\(i) \(j) \(start.timeIntervalSinceNow)")
+            }
+        }
+    }
+
     func testPerformanceOfHamming() {
         self.measureBlock() {
             NSLog("start")
             let tree = VPTree<Photo>(elements: [])
-            for (var i = 0 ; i < 20000 ; i++) {
+            for (var i = 0 ; i < 25000 ; i++) {
                 let photo = Photo(id: i, pHash: random64());
                 tree.addElement(photo)
-                let founds = tree.findClosest(photo, maxDistance: 15.0)
+                tree.findClosest(photo, maxDistance: 21)
             }
         }
     }
-    
 }

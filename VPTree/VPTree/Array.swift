@@ -8,7 +8,7 @@
 
 import Foundation
 
-private func split<T: Comparable>(inout array: [T], nbItemLeft: Int, nbItemRight: Int) -> (Array<T>, Array<T>) {
+internal func split<T: Comparable>(array: [T], nbItemLeft: Int, nbItemRight: Int) -> (Array<T>, Array<T>) {
     var left: Array<T> = []
     var right: Array<T> = []
     var middle: Array<T> = []
@@ -52,10 +52,10 @@ private func split<T: Comparable>(inout array: [T], nbItemLeft: Int, nbItemRight
     }
     
     if left.count > nbItemLeft {
-        let (subLeft, subRight): ([T], [T]) = split(&left, nbItemLeft: nbItemLeft, nbItemRight: nbItemRight - right.count)
+        let (subLeft, subRight): ([T], [T]) = split(left, nbItemLeft: nbItemLeft, nbItemRight: nbItemRight - right.count)
         return (subLeft, right + subRight)
     } else if right.count > nbItemRight {
-        let (subLeft, subRight): ([T], [T]) = split(&right, nbItemLeft: nbItemLeft - left.count, nbItemRight: nbItemRight)
+        let (subLeft, subRight): ([T], [T]) = split(right, nbItemLeft: nbItemLeft - left.count, nbItemRight: nbItemRight)
         return (left + subLeft, subRight)
     } else {
         return (left, right)
@@ -65,7 +65,7 @@ private func split<T: Comparable>(inout array: [T], nbItemLeft: Int, nbItemRight
 internal extension Array {
     internal func splitByMedian<T where T: Comparable>() -> ([T], [T]) {
         let mid = count / 2
-        var array: Array<T> = self.map {return $0 as! T}
-        return split(&array, nbItemLeft: count-mid, nbItemRight: mid)
+        let array: Array<T> = self.map {return $0 as! T}
+        return split(array, nbItemLeft: count-mid, nbItemRight: mid)
     }
 }
