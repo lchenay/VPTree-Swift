@@ -102,7 +102,7 @@ public class VPTree<T: Distance> {
                 }
                 
                 if d < mu {
-                    if d - tau <= mu {
+                    if d - tau < mu {
                         nodesToTest.append(leftChild)
                     }
                     if d + tau >= mu {

@@ -37,7 +37,7 @@ public class Photo: Distance {
     init(id: Int) {
         self.id = id
         for var i = 0; i < 42 ; i++ {
-            values.append((Double(arc4random()) / Double(UINT32_MAX)) * 8.0 - 1)
+            values.append((Double(arc4random()) / Double(UINT32_MAX)) * 8 - 1)
         }
     }
 }
@@ -113,10 +113,40 @@ class VPTreeTests: XCTestCase {
                 tree1.addElement(photo)
                 tree2.addElement(photo)
                 print(i)
-                tree1.findClosest(photo, maxDistance: 2.1)
-                tree2.findClosest(photo, maxDistance: 2.1)
+                tree1.findClosest(photo, maxDistance: 2.0)
+                tree2.findClosest(photo, maxDistance: 2.0)
 
             }
         }
+    }
+    
+    func testPlayGround() {
+        func toto(left: PHash, right: PHash) -> Double {
+            var sse = 0.0
+            let iteratable = zip(left.values, right.values)
+            for (p1, p2) in iteratable {
+                sse += pow((p1 as! Double) - (p2 as! Double), 2)
+            }
+            
+            return pow(sse, 0.5)
+        }
+        
+        class PHash {
+            var values = NSMutableArray()
+            init() {
+                for var i = 0; i < 42 ; i++ {
+                    values.insertObject(Double(arc4random()) / Double(UINT32_MAX), atIndex: 0)
+                }
+            }
+        }
+        
+        let p1 = PHash()
+        let p2 = PHash()
+        let time = NSDate()
+        for var i = 0 ; i < 1000 ; i++ {
+            toto(p1, right: p2)
+        }
+        
+        print(-time.timeIntervalSinceNow)
     }
 }
