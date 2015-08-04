@@ -23,15 +23,22 @@ func random64() -> UInt64 {
 }
 
 public func ~~(left: Photo, right: Photo) -> Double {
-    return Double(hammingWeight(left.pHash^right.pHash))
+    let sse = zip(left.values, right.values).reduce(0.0) { (total, pair) -> Double in
+        let diff = pow(pair.0-pair.1, 2.0)
+        return total + diff
+    }
+    return sse
 }
 
 public class Photo: Distance {
     let id: Int
-    let pHash: UInt64
-    init(id: Int, pHash: UInt64) {
+    var values = [Double]()
+    
+    init(id: Int) {
         self.id = id
-        self.pHash = pHash
+        for var i = 0; i < 42 ; i++ {
+            values.append((Double(arc4random()) / Double(UINT32_MAX)) * 6.0 + 1)
+        }
     }
 }
 
@@ -81,12 +88,12 @@ class VPTreeTests: XCTestCase {
     
     func testTryBest() {
         for var j = 2; j < 30 ; j++ {
-            for var i = j ; i < 200 ; i += 5 {
+            for var i = j ; i < 100 ; i += 5 {
                 let start = NSDate()
                 
                 let tree = VPTree<Photo>(maxLeafElements: i, branchingFactor: j)
-                for (var i = 0 ; i < 25000 ; i++) {
-                    let photo = Photo(id: i, pHash: random64());
+                for (var i = 0 ; i < 200 ; i++) {
+                    let photo = Photo(id: i);
                     tree.addElement(photo)
                     tree.findClosest(photo, maxDistance: 21)
                 }
@@ -99,9 +106,9 @@ class VPTreeTests: XCTestCase {
     func testPerformanceOfHamming() {
         self.measureBlock() {
             NSLog("start")
-            let tree = VPTree<Photo>(elements: [])
+            let tree = VPTree<Photo>(maxLeafElements: 3, branchingFactor: 3)
             for (var i = 0 ; i < 25000 ; i++) {
-                let photo = Photo(id: i, pHash: random64());
+                let photo = Photo(id: i);
                 tree.addElement(photo)
                 tree.findClosest(photo, maxDistance: 21)
             }

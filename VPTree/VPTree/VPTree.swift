@@ -48,7 +48,7 @@ public class VPTree<T: Distance> {
     }
     
     convenience init(elements: [T]) {
-        self.init(maxLeafElements: 80, branchingFactor: 7)
+        self.init(maxLeafElements: 14, branchingFactor: 7)
         self.addElements(elements)
     }
     
@@ -74,10 +74,10 @@ public class VPTree<T: Distance> {
                 var allElements = (points + elements)
                 //Random get of the VP points
                 let vpPoint = allElements.removeAtIndex(0)
-                
                 var points: [Point<T>] = allElements.map {
                     (item: T) -> Point<T> in
-                    return Point<T>(d: item ~~ vpPoint, point: item)
+                    let d = item ~~ vpPoint
+                    return Point<T>(d: d, point: item)
                 }
                 var childs = [VPNode<T>]()
                 var mu = [Double]()
@@ -123,15 +123,18 @@ public class VPTree<T: Distance> {
         var nodesToTest: [VPNode<T>] = [firstNode]
         
         let neighbors = PriorityQueue<T>(limit: limit)
-        
+        var nbElementsChecked = 0
+        var nbNodeChecked = 0
         while(nodesToTest.count > 0) {
-            let node = nodesToTest.removeAtIndex(0)
+            nbNodeChecked++
+            let node = nodesToTest.removeLast()
             switch(node) {
             case .Leaf(let elements):
                 let count = elements.count
                 for var i = 0 ; i < count ; i++ {
                     let element = elements[i]
                     let d = point ~~ element
+                    nbElementsChecked++
                     if d <= tau {
                         neighbors.push(d, item: element)
                         if maxDistance == nil {
@@ -162,7 +165,7 @@ public class VPTree<T: Distance> {
                 }
             }
         }
-
+        
         return neighbors.items
     }
 
