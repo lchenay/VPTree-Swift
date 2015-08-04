@@ -27,7 +27,7 @@ public func ~~(left: Photo, right: Photo) -> Double {
         let diff = pow(pair.0-pair.1, 2.0)
         return total + diff
     }
-    return sse
+    return pow(sse, 0.5)
 }
 
 public class Photo: Distance {
@@ -37,7 +37,7 @@ public class Photo: Distance {
     init(id: Int) {
         self.id = id
         for var i = 0; i < 42 ; i++ {
-            values.append((Double(arc4random()) / Double(UINT32_MAX)) * 6.0 + 1)
+            values.append((Double(arc4random()) / Double(UINT32_MAX)) * 8.0 - 1)
         }
     }
 }
@@ -60,7 +60,7 @@ class VPTreeTests: XCTestCase {
         let p3 = CGPoint(x: 1, y: 0)
         let p4 = CGPoint(x: 0, y: 1)
         
-        let tree = VPTree<CGPoint>(elements: [])
+        let tree = VPTreePaged<CGPoint>(maxLeafElements: 2, branchingFactor: 2)
         tree.addElement(p1)
         tree.addElement(p2)
         tree.addElement(p3)
@@ -74,7 +74,7 @@ class VPTreeTests: XCTestCase {
     
     func testFindClosest() {
         let p1 = CGPoint(x: 0, y: 0)
-        let p2 = CGPoint(x: 1, y: 1)
+        let p2 = CGPoint(x: 2, y: 2)
         let p3 = CGPoint(x: 1, y: 0)
         let p4 = CGPoint(x: 0, y: 1)
         
@@ -82,7 +82,7 @@ class VPTreeTests: XCTestCase {
         
         let founds = tree.findClosest(p4, maxDistance: 1.0)
         
-        XCTAssertEqual(founds.count, 2)
+        XCTAssertEqual(founds.count, 1)
         
     }
     
@@ -91,7 +91,7 @@ class VPTreeTests: XCTestCase {
             for var i = j ; i < 100 ; i += 5 {
                 let start = NSDate()
                 
-                let tree = VPTree<Photo>(maxLeafElements: i, branchingFactor: j)
+                let tree = VPTree<Photo>(elements: [])
                 for (var i = 0 ; i < 200 ; i++) {
                     let photo = Photo(id: i);
                     tree.addElement(photo)
@@ -106,11 +106,16 @@ class VPTreeTests: XCTestCase {
     func testPerformanceOfHamming() {
         self.measureBlock() {
             NSLog("start")
-            let tree = VPTree<Photo>(maxLeafElements: 3, branchingFactor: 3)
+            let tree1 = VPTreePaged<Photo>(maxLeafElements: 16, branchingFactor: 2)
+            let tree2 = VPTree<Photo>(elements: [])
             for (var i = 0 ; i < 25000 ; i++) {
                 let photo = Photo(id: i);
-                tree.addElement(photo)
-                tree.findClosest(photo, maxDistance: 21)
+                tree1.addElement(photo)
+                tree2.addElement(photo)
+                print(i)
+                tree1.findClosest(photo, maxDistance: 2.1)
+                tree2.findClosest(photo, maxDistance: 2.1)
+
             }
         }
     }
