@@ -14,6 +14,12 @@ precedence 140
 
 public protocol Distance {
     func ~~(lhs: Self, rhs: Self) -> Double
+    func isWithin(distance: Double, of: Self) -> Bool
+}
+extension Distance {
+    public func isWithin(distance: Double, of: Self) -> Bool {
+        return self ~~ of <= distance
+    }
 }
 
 internal func <<T>(left: Point<T>, right: Point<T>) -> Bool {

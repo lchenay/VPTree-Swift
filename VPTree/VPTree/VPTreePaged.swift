@@ -139,8 +139,6 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
             }
         }
         
-        print("\(nbElementsChecked), \(nbNodeChecked), \(neighbors.items.count)")
-        
         return neighbors.items
     }
 

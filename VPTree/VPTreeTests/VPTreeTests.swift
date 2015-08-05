@@ -23,14 +23,16 @@ func random64() -> UInt64 {
 }
 
 public func ~~(left: Photo, right: Photo) -> Double {
-    let sse = zip(left.values, right.values).reduce(0.0) { (total, pair) -> Double in
-        let diff = pow(pair.0-pair.1, 2.0)
-        return total + diff
+    var sse = 0.0
+    let iteratable = zip(left.values, right.values)
+    for (p1, p2) in iteratable {
+        sse += pow((p1 as! Double) - (p2 as! Double), 2)
     }
+    
     return pow(sse, 0.5)
 }
 
-public class Photo: Distance {
+public class Photo {
     let id: Int
     var values = [Double]()
     
@@ -39,6 +41,22 @@ public class Photo: Distance {
         for var i = 0; i < 42 ; i++ {
             values.append((Double(arc4random()) / Double(UINT32_MAX)) * 8 - 1)
         }
+    }
+}
+
+extension Photo: Distance {
+    public func isWithin(distance: Double, of: Photo) -> Bool {
+        var sse = 0.0
+        let squareDist = pow(distance, 2)
+        let iteratable = zip(self.values, of.values)
+        for (p1, p2) in iteratable {
+            sse += pow((p1) - (p2 ), 2)
+            if sse > squareDist {
+                return false
+            }
+        }
+        
+        return sse < squareDist
     }
 }
 
@@ -108,14 +126,12 @@ class VPTreeTests: XCTestCase {
             NSLog("start")
             let tree1 = VPTreePaged<Photo>(maxLeafElements: 16, branchingFactor: 2)
             let tree2 = VPTree<Photo>(elements: [])
-            for (var i = 0 ; i < 25000 ; i++) {
+            for (var i = 0 ; i < 500 ; i++) {
                 let photo = Photo(id: i);
                 tree1.addElement(photo)
                 tree2.addElement(photo)
-                print(i)
                 tree1.findClosest(photo, maxDistance: 2.0)
                 tree2.findClosest(photo, maxDistance: 2.0)
-
             }
         }
     }
