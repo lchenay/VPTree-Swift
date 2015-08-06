@@ -48,8 +48,9 @@ extension Photo: Distance {
     public func isWithin(distance: Double, of: Photo) -> Bool {
         var sse = 0.0
         let squareDist = pow(distance, 2)
-        let iteratable = zip(self.values, of.values)
-        for (p1, p2) in iteratable {
+        var l = self.values.generate()
+        var r = of.values.generate()
+        while let p1 = l.next(), let p2 = r.next() {
             sse += pow((p1) - (p2 ), 2)
             if sse > squareDist {
                 return false
@@ -124,14 +125,17 @@ class VPTreeTests: XCTestCase {
     func testPerformanceOfHamming() {
         self.measureBlock() {
             NSLog("start")
-            let tree1 = VPTreePaged<Photo>(maxLeafElements: 16, branchingFactor: 2)
+            let tree1 = VPTreePaged<Photo>(maxLeafElements: 16, branchingFactor: 8)
             let tree2 = VPTree<Photo>(elements: [])
             for (var i = 0 ; i < 500 ; i++) {
+                print(i)
                 let photo = Photo(id: i);
                 tree1.addElement(photo)
                 tree2.addElement(photo)
-                tree1.findClosest(photo, maxDistance: 2.0)
-                tree2.findClosest(photo, maxDistance: 2.0)
+                var result = tree1.findClosest(photo, maxDistance: 2.0)
+                print("\(result.count) \(tree1.nbElementsChecked) \(tree1.nbNodeChecked)")
+                result = tree2.findClosest(photo, maxDistance: 2.0)
+                print("\(result.count) \(tree2.nbElementsChecked) \(tree2.nbNodeChecked)")
             }
         }
     }

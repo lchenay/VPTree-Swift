@@ -91,13 +91,16 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
         }
     }
     
-    private func _neighbors(point: T, limit: Int?, maxDistance: Double? = nil) -> [T] {
-        var tau: Double = maxDistance ?? Double.infinity
+    public var nbElementsChecked = 0
+    public var nbNodeChecked = 0
+    
+    private func _neighbors(point: T, limit: Int) -> [T] {
+        var tau: Double = Double.infinity
         var nodesToTest: [VPNodePaged<T>] = [firstNode]
         
         let neighbors = PriorityQueue<T>(limit: limit)
-        var nbElementsChecked = 0
-        var nbNodeChecked = 0
+        nbElementsChecked = 0
+        nbNodeChecked = 0
         while(nodesToTest.count > 0) {
             nbNodeChecked++
             let node = nodesToTest.removeLast()
@@ -110,18 +113,14 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
                     nbElementsChecked++
                     if d <= tau {
                         neighbors.push(d, item: element)
-                        if maxDistance == nil {
-                            tau = neighbors.biggestWeigth
-                        }
+                        tau = neighbors.biggestWeigth
                     }
                 }
             case .Node(let vpPoint, let mus, let childs):
                 let dist = point ~~ vpPoint
                 if dist <= tau {
                     neighbors.push(dist, item: vpPoint)
-                    if maxDistance == nil {
-                        tau = neighbors.biggestWeigth
-                    }
+                    tau = neighbors.biggestWeigth
                 }
                 var i = 0
                 for ; i < branchingFactor - 1 ; i++ {
@@ -141,12 +140,57 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
         
         return neighbors.items
     }
+    
+    private func _neighbors(point: T, maxDistance: Double) -> [T] {
+        var tau: Double = maxDistance ?? Double.infinity
+        var nodesToTest: [VPNodePaged<T>] = [firstNode]
+        
+        var neighbors = [T]()
+        nbElementsChecked = 0
+        nbNodeChecked = 0
+        while(nodesToTest.count > 0) {
+            nbNodeChecked++
+            let node = nodesToTest.removeLast()
+            switch(node) {
+            case .Leaf(let elements):
+                let count = elements.count
+                for var i = 0 ; i < count ; i++ {
+                    let element = elements[i]
+                    let d = point ~~ element
+                    nbElementsChecked++
+                    if point.isWithin(tau, of: element) {
+                        neighbors.append(element)
+                    }
+                }
+            case .Node(let vpPoint, let mus, let childs):
+                let dist = point ~~ vpPoint
+                if dist <= tau {
+                    neighbors.append(vpPoint)
+                }
+                var i = 0
+                for ; i < branchingFactor - 1 ; i++ {
+                    if tau + mus[i] >= dist {
+                        break
+                    }
+                }
+                
+                for ; i < branchingFactor ; i++ {
+                    nodesToTest.append(childs[i])
+                    if (tau + dist < mus[i]) {
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return neighbors
+    }
 
     public override func findNeighbors(point: T, limit: Int) -> [T] {
-        return _neighbors(point, limit: limit, maxDistance: nil)
+        return _neighbors(point, limit: limit)
     }
 
     public override func findClosest(point: T, maxDistance: Double) -> [T] {
-        return _neighbors(point, limit: nil, maxDistance: maxDistance)
+        return _neighbors(point, maxDistance: maxDistance)
     }
 }

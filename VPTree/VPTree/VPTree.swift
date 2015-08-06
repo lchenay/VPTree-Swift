@@ -85,7 +85,7 @@ public class VPTree<T: Distance> {
                     nbElementsChecked++
                     let element = elements[i]
                     if point.isWithin(tau, of: element) {
-                        neighbors.append(point)
+                        neighbors.append(element)
                     }
                 }
             case .Node(let vpPoint, let mu, let leftChild, let rightChild):
