@@ -25,11 +25,11 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
         self.addElements(elements)
     }
     
-    public func addElement(point: T) {
+    override public func addElement(point: T) {
         firstNode = self.addElements([point], node: firstNode)
     }
     
-    public func addElements(points: [T]) {
+    override public func addElements(points: [T]) {
         firstNode = self.addElements(points, node: firstNode)
     }
     
@@ -91,9 +91,6 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
         }
     }
     
-    public var nbElementsChecked = 0
-    public var nbNodeChecked = 0
-    
     private func _neighbors(point: T, limit: Int) -> [T] {
         var tau: Double = Double.infinity
         var nodesToTest: [VPNodePaged<T>] = [firstNode]
@@ -142,7 +139,7 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
     }
     
     private func _neighbors(point: T, maxDistance: Double) -> [T] {
-        var tau: Double = maxDistance ?? Double.infinity
+        let tau: Double = maxDistance ?? Double.infinity
         var nodesToTest: [VPNodePaged<T>] = [firstNode]
         
         var neighbors = [T]()
@@ -156,7 +153,6 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
                 let count = elements.count
                 for var i = 0 ; i < count ; i++ {
                     let element = elements[i]
-                    let d = point ~~ element
                     nbElementsChecked++
                     if point.isWithin(tau, of: element) {
                         neighbors.append(element)

@@ -40,11 +40,22 @@ internal struct Point<T>: Comparable {
     }
 }
 
-class SpatialTree<T: Distance> {
-    func findNeighbors(point: T, limit: Int) -> [T] {
+public class SpatialTree<T: Distance> {
+    public var nbElementsChecked = 0
+    public var nbNodeChecked = 0
+    
+    public func addElement(point: T) {
         fatalError("Implement this function")
     }
-    func findClosest(point: T, maxDistance: Double) -> [T] {
+
+    public func addElements(points: [T]) {
+        fatalError("Implement this function")
+    }
+    
+    public func findNeighbors(point: T, limit: Int) -> [T] {
+        fatalError("Implement this function")
+    }
+    public func findClosest(point: T, maxDistance: Double) -> [T] {
         fatalError("Implement this function")
     }
 }

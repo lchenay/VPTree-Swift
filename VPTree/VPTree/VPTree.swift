@@ -5,21 +5,22 @@ internal enum VPNode<T: Distance> {
     indirect case Node(T, Double, VPNode<T>, VPNode)
 }
 
-public class VPTree<T: Distance> {
+public class VPTree<T: Distance>: SpatialTree<T> {
     internal var firstNode: VPNode<T>
     
     let maxLeafElements = 16
     
     public init(elements: [T]) {
         firstNode = VPNode.Leaf([])
+        super.init()
         self.addElements(elements)
     }
     
-    public func addElement(point: T) {
+    override public func addElement(point: T) {
         firstNode = self.addElements([point], node: firstNode)
     }
     
-    public func addElements(points: [T]) {
+    override public func addElements(points: [T]) {
         firstNode = self.addElements(points, node: firstNode)
     }
     
@@ -115,9 +116,6 @@ public class VPTree<T: Distance> {
         return neighbors
     }
     
-    public var nbElementsChecked = 0
-    public var nbNodeChecked = 0
-    
     private func _neighbors(point: T, limit: Int?) -> [T] {
         var tau: Double = Double.infinity
         var nodesToTest: [VPNode<T>?] = [firstNode]
@@ -169,11 +167,11 @@ public class VPTree<T: Distance> {
         return neighbors.items
     }
     
-    public func findNeighbors(point: T, limit: Int) -> [T] {
+    public override func findNeighbors(point: T, limit: Int) -> [T] {
         return _neighbors(point, limit: limit)
     }
     
-    public func findClosest(point: T, maxDistance: Double) -> [T] {
+    public override func findClosest(point: T, maxDistance: Double) -> [T] {
         return _neighbors(point, maxDistance: maxDistance)
     }
 }
