@@ -3,6 +3,15 @@ import Foundation
 internal enum VPNodePaged<T: Distance> {
     case Leaf([T])
     indirect case Node(T, [Double], [VPNodePaged<T>])
+    
+    var count: Int {
+        switch self {
+        case .Leaf(let elements):
+            return elements.count
+        case .Node(_, _, let childs):
+            return childs.reduce(0, combine: { return $0 + $1.count }) + 1
+        }
+    }
 }
 
 public class VPTreePaged<T: Distance>: SpatialTree<T> {
@@ -57,8 +66,14 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
                 
                 for var i = 0 ; i < branchingFactor - 1 ; i++ {
                     let count = points.count
-                    let nbItemLeft = count / (branchingFactor - i)
-                    let (left, right) = split(points, nbItemLeft: nbItemLeft, nbItemRight: count-nbItemLeft)
+                    if count == 0 {
+                        break
+                    }
+                    var nbItemLeft = count / (branchingFactor - i)
+                    if nbItemLeft == 0 {
+                        nbItemLeft = 1
+                    }
+                    let (left, right) = trySplit(points, nbItemLeft: nbItemLeft, nbItemRight: count-nbItemLeft)
                     points = right
                     mu.append(left.last!.d)
                     childs.append(addElements(left.map {$0.point}, node: VPNodePaged<T>.Leaf([])))
@@ -70,11 +85,11 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
             }
         case .Node(let vpPoint, let mus, var childs):
             var toAddInNodes = Array<Array<T>>(count: branchingFactor, repeatedValue: Array<T>())
-            
+            let musCount = mus.count
             for var i = 0 ; i < pointsCount ; i++ {
                 let point = points[i]
                 let d = point ~~ vpPoint
-                for var j = 0 ; j < branchingFactor ; j++ {
+                for var j = 0 ; j < musCount ; j++ {
                     let mu = mus[j]
                     if d <= mu {
                         toAddInNodes[j].append(point)
@@ -83,7 +98,7 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
                 }
             }
             
-            for var i = 0 ; i < branchingFactor ; i++ {
+            for var i = 0 ; i < musCount ; i++ {
                 childs[i] = addElements(toAddInNodes[i], node: childs[i])
             }
             

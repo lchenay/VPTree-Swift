@@ -25,11 +25,11 @@ public class VPTree<T: Distance>: SpatialTree<T> {
     }
     
     private func addElements(points: [T], node: VPNode<T>) -> VPNode<T> {
+        let pointCount = points.count
         switch node {
         case .Leaf(var elements):
-            if elements.count + points.count <= maxLeafElements {
-                let count = points.count
-                for var i = 0 ; i < count ; i++ {
+            if elements.count + pointCount <= maxLeafElements {
+                for var i = 0 ; i < pointCount ; i++ {
                     elements.append(points[i])
                 }
                 return .Leaf(elements)
@@ -53,8 +53,7 @@ public class VPTree<T: Distance>: SpatialTree<T> {
         case .Node(let vpPoint, let mu, let leftChild, let rightChild):
             var toAddLeft = [T]()
             var toAddRight = [T]()
-            let count = points.count
-            for var i = 0 ; i < count ; i++ {
+            for var i = 0 ; i < pointCount ; i++ {
                 let point = points[i]
                 if point.isWithin(mu, of: vpPoint) {
                     toAddLeft.append(point)
@@ -96,17 +95,17 @@ public class VPTree<T: Distance>: SpatialTree<T> {
                 }
                 
                 if d < mu {
-                    if d - tau < mu {
+                    if d - tau <= mu {
                         nodesToTest.append(leftChild)
                     }
-                    if d + tau >= mu {
+                    if d + tau > mu {
                         nodesToTest.append(rightChild)
                     }
                 } else {
-                    if d + tau >= mu  {
+                    if d + tau > mu  {
                         nodesToTest.append(rightChild)
                     }
-                    if d - tau < mu {
+                    if d - tau <= mu {
                         nodesToTest.append(leftChild)
                     }
                 }
