@@ -24,9 +24,10 @@ func random64() -> UInt64 {
 
 public func ~~(left: Photo, right: Photo) -> Double {
     var sse = 0.0
-    let iteratable = zip(left.values, right.values)
-    for (p1, p2) in iteratable {
-        sse += pow((p1 as! Double) - (p2 as! Double), 2)
+    var l = left.values.generate()
+    var r = right.values.generate()
+    while let p1 = l.next(), p2 = r.next() {
+        sse += pow(p1 - p2, 2)
     }
     
     return pow(sse, 0.5)
@@ -143,19 +144,24 @@ class VPTreeTests: XCTestCase {
     func testPlayGround() {
         func toto(left: PHash, right: PHash) -> Double {
             var sse = 0.0
-            let iteratable = zip(left.values, right.values)
-            for (p1, p2) in iteratable {
-                sse += pow((p1 as! Double) - (p2 as! Double), 2)
+            var l = left.values
+            var r = right.values
+            var i = 0
+            while (i++ < 42) {
+                sse += pow(r.memory - l.memory , 2)
+                l = l.successor()
+                r = r.successor()
             }
-            
             return pow(sse, 0.5)
         }
         
         class PHash {
-            var values = NSMutableArray()
+            var values: UnsafeMutablePointer<Double> = UnsafeMutablePointer<Double>.alloc(42)
             init() {
+                var pt = values
                 for var i = 0; i < 42 ; i++ {
-                    values.insertObject(Double(arc4random()) / Double(UINT32_MAX), atIndex: 0)
+                    pt.memory = (Double(arc4random()) / Double(UINT32_MAX))
+                    pt = pt.successor()
                 }
             }
         }
@@ -163,7 +169,7 @@ class VPTreeTests: XCTestCase {
         let p1 = PHash()
         let p2 = PHash()
         let time = NSDate()
-        for var i = 0 ; i < 1000 ; i++ {
+        for var i = 0 ; i < 1000000 ; i++ {
             toto(p1, right: p2)
         }
         

@@ -32,7 +32,7 @@ internal func trySplit<T: Comparable>(array: [T], nbItemLeft: Int, nbItemRight: 
         }
     }
     
-    left.extend(middle)
+    left.appendContentsOf(middle)
     
     return (left, right)
 }

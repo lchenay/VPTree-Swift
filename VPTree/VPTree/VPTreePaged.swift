@@ -50,7 +50,7 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
         switch node {
         case .Leaf(var elements):
             if elements.count + pointsCount <= maxLeafElements {
-                elements.extend(points)
+                elements.appendContentsOf(points)
                 return .Leaf(elements)
             } else {
                 var allElements = (points + elements)
@@ -179,13 +179,15 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
                     neighbors.append(vpPoint)
                 }
                 var i = 0
-                for ; i < branchingFactor - 1 ; i++ {
+                let count = childs.count
+
+                for ; i < count - 1 ; i++ {
                     if tau + mus[i] >= dist {
                         break
                     }
                 }
                 
-                for ; i < branchingFactor ; i++ {
+                for ; i < count ; i++ {
                     nodesToTest.append(childs[i])
                     if (tau + dist < mus[i]) {
                         break;
