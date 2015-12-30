@@ -33,9 +33,18 @@ public func ~~(left: Photo, right: Photo) -> Double {
     return pow(sse, 0.5)
 }
 
-public class Photo {
+public class Photo: NSObject, NSCoding {
     let id: Int
     var values = [Double]()
+    
+    public func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeInteger(id, forKey: "id")
+        aCoder.encodeObject(values, forKey: "values")
+    }
+    public required init?(coder aDecoder: NSCoder) {
+        self.id = aDecoder.decodeIntegerForKey("id")
+        self.values = aDecoder.decodeObjectForKey("values") as! [Double]
+    }
     
     init(id: Int) {
         self.id = id
@@ -79,7 +88,7 @@ class VPTreeTests: XCTestCase {
         let p2 = CGPoint(x: 1, y: 1)
         let p3 = CGPoint(x: 1, y: 0)
         let p4 = CGPoint(x: 0, y: 1)
-        
+        /*
         let tree = VPTreePaged<CGPoint>(maxLeafElements: 2, branchingFactor: 2)
         tree.addElement(p1)
         tree.addElement(p2)
@@ -89,6 +98,7 @@ class VPTreeTests: XCTestCase {
         let founds = tree.findNeighbors(p4, limit: 3)
         
         XCTAssertEqual(founds.count, 3)
+        */
 
     }
     
@@ -111,7 +121,7 @@ class VPTreeTests: XCTestCase {
             for var i = j ; i < 100 ; i += 5 {
                 let start = NSDate()
                 
-                let tree = VPTree<Photo>(elements: [])
+                let tree = VPTreePaged<Photo>(maxLeafElements: i, branchingFactor: j)
                 for (var i = 0 ; i < 200 ; i++) {
                     let photo = Photo(id: i);
                     tree.addElement(photo)
@@ -139,6 +149,18 @@ class VPTreeTests: XCTestCase {
                 print("\(result.count) \(tree2.nbElementsChecked) \(tree2.nbNodeChecked)")
             }
         }
+    }
+    
+    func testCoder() {
+        let tree = VPTreePaged<Photo>(maxLeafElements: 2, branchingFactor: 2)
+        for i in 0...10 {
+            tree.addElement(Photo(id: i))
+        }
+        
+        let data = NSKeyedArchiver.archivedDataWithRootObject(tree)
+        
+        let resultTree = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! VPTreePaged<Photo>
+        print(resultTree)
     }
     
     func testPlayGround() {

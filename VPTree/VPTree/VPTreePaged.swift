@@ -1,6 +1,6 @@
 import Foundation
 
-internal enum VPNodePaged<T: Distance> {
+internal enum VPNodePaged<T: AnyObject where T: Distance> {
     case Leaf([T])
     indirect case Node(T, [Double], [VPNodePaged<T>])
     
@@ -12,13 +12,56 @@ internal enum VPNodePaged<T: Distance> {
             return childs.reduce(0, combine: { return $0 + $1.count }) + 1
         }
     }
+    
+    func encode() -> [String: AnyObject] {
+        switch self {
+        case .Leaf(let elements):
+            return [
+                "type": "leaf",
+                "elements": NSArray(array: elements)
+            ]
+        case .Node(let vpPoint, let mus, var childs):
+            return [
+                "type": "node",
+                "vpPoint": vpPoint,
+                "mus": mus,
+                "childs": childs.map { return $0.encode() }
+            ]
+        }
+    }
+    
+    static func decode(data: [String: AnyObject]) -> VPNodePaged<T> {
+        switch data["type"] as! String {
+        case "leaf":
+            return VPNodePaged<T>.Leaf(data["elements"] as! [T])
+        case "node":
+            return VPNodePaged<T>.Node(data["vpPoint"] as! T, data["mus"] as! [Double], (data["childs"] as! [[String: AnyObject]]).map { return VPNodePaged<T>.decode($0)})
+        default: abort()
+        }
+    }
 }
 
-public class VPTreePaged<T: Distance>: SpatialTree<T> {
+public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
     internal var firstNode: VPNodePaged<T>
     
     private let maxLeafElements: Int
     private let branchingFactor: Int
+    
+    public override func encodeWithCoder(aCoder: NSCoder) {
+        aCoder.encodeInteger(maxLeafElements, forKey: "maxLeafElements")
+        aCoder.encodeInteger(branchingFactor, forKey: "branchingFactor")
+        
+        aCoder.encodeObject(NSDictionary(dictionary: firstNode.encode()), forKey: "firstNode")
+        
+        super.encodeWithCoder(aCoder)
+    }
+    public required init?(coder aDecoder: NSCoder) {
+        self.maxLeafElements = aDecoder.decodeIntegerForKey("maxLeafElements")
+        self.branchingFactor = aDecoder.decodeIntegerForKey("branchingFactor")
+        self.firstNode = VPNodePaged.decode(aDecoder.decodeObjectForKey("firstNode") as! [String: AnyObject])
+        
+        super.init(coder: aDecoder)
+    }
     
     public init(maxLeafElements: Int, branchingFactor: Int) {
         if (maxLeafElements < branchingFactor) {
@@ -27,6 +70,7 @@ public class VPTreePaged<T: Distance>: SpatialTree<T> {
         self.maxLeafElements = maxLeafElements
         self.branchingFactor = branchingFactor
         self.firstNode = VPNodePaged.Leaf([])
+        super.init()
     }
     
     public convenience init(elements: [T]) {

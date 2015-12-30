@@ -40,9 +40,20 @@ internal struct Point<T>: Comparable {
     }
 }
 
-public class SpatialTree<T: Distance> {
+public class SpatialTree<T: Distance>: NSObject, NSCoding {
     public var nbElementsChecked = 0
     public var nbNodeChecked = 0
+    
+    public func encodeWithCoder(aCoder: NSCoder) {
+        
+    }
+    public required init?(coder aDecoder: NSCoder) {
+        
+    }
+    
+    public override init() {
+        super.init()
+    }
     
     public func addElement(point: T) {
         fatalError("Implement this function")
