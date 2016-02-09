@@ -13,30 +13,45 @@ internal enum VPNodePaged<T: AnyObject where T: Distance> {
         }
     }
     
-    func encode() -> [String: AnyObject] {
+    internal func encodeWithCoder(aCoder: NSCoder) {
         switch self {
+        case .Node(let vpPoint, let mus, let childs):
+            
+            aCoder.encodeObject(vpPoint, forKey: "v")
+            aCoder.encodeObject(mus, forKey: "m")
+            childs.enumerate().forEach {
+                let mutableData = NSMutableData()
+                let archiver = NSKeyedArchiver(forWritingWithMutableData: mutableData)
+            
+                $1.encodeWithCoder(archiver)
+                archiver.finishEncoding()
+                
+                aCoder.encodeObject(mutableData, forKey: "\($0)" )
+            }
         case .Leaf(let elements):
-            return [
-                "type": "leaf",
-                "elements": NSArray(array: elements)
-            ]
-        case .Node(let vpPoint, let mus, var childs):
-            return [
-                "type": "node",
-                "vpPoint": vpPoint,
-                "mus": mus,
-                "childs": childs.map { return $0.encode() }
-            ]
+            aCoder.encodeObject(elements, forKey: "e")
         }
     }
     
-    static func decode(data: [String: AnyObject]) -> VPNodePaged<T> {
-        switch data["type"] as! String {
-        case "leaf":
-            return VPNodePaged<T>.Leaf(data["elements"] as! [T])
-        case "node":
-            return VPNodePaged<T>.Node(data["vpPoint"] as! T, data["mus"] as! [Double], (data["childs"] as! [[String: AnyObject]]).map { return VPNodePaged<T>.decode($0)})
-        default: abort()
+    internal init(coder aDecoder: NSCoder) {
+        if let elemenst = aDecoder.decodeObjectForKey("e") as? [T] {
+            self = VPNodePaged<T>.Leaf(elemenst)
+        } else {
+            var i = 0;
+            var childs = [VPNodePaged<T>]()
+            var childData = aDecoder.decodeObjectForKey("\(i++)") as? NSData
+            
+            while childData != nil {
+                let unarchiver = NSKeyedUnarchiver(forReadingWithData: childData!)
+                childs.append(VPNodePaged<T>(coder: unarchiver))
+                unarchiver.finishDecoding()
+                
+                childData = aDecoder.decodeObjectForKey("\(i++)") as? NSData
+            }
+            
+            let vpPoint = aDecoder.decodeObjectForKey("v") as! T
+            let mus = aDecoder.decodeObjectForKey("m") as! [Double]
+            self = VPNodePaged<T>.Node(vpPoint, mus, childs)
         }
     }
 }
@@ -48,17 +63,16 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
     private let branchingFactor: Int
     
     public override func encodeWithCoder(aCoder: NSCoder) {
+        super.encodeWithCoder(aCoder)
+        
         aCoder.encodeInteger(maxLeafElements, forKey: "maxLeafElements")
         aCoder.encodeInteger(branchingFactor, forKey: "branchingFactor")
-        
-        aCoder.encodeObject(NSDictionary(dictionary: firstNode.encode()), forKey: "firstNode")
-        
-        super.encodeWithCoder(aCoder)
+        firstNode.encodeWithCoder(aCoder)
     }
     public required init?(coder aDecoder: NSCoder) {
         self.maxLeafElements = aDecoder.decodeIntegerForKey("maxLeafElements")
         self.branchingFactor = aDecoder.decodeIntegerForKey("branchingFactor")
-        self.firstNode = VPNodePaged.decode(aDecoder.decodeObjectForKey("firstNode") as! [String: AnyObject])
+        self.firstNode = VPNodePaged(coder: aDecoder)
         
         super.init(coder: aDecoder)
     }

@@ -1,3 +1,4 @@
+
 import UIKit
 import XCTest
 
@@ -36,14 +37,17 @@ public func ~~(left: Photo, right: Photo) -> Double {
 public class Photo: NSObject, NSCoding {
     let id: Int
     var values = [Double]()
+    var objectID = NSURL(string: "https://www.sundayhq.com")!
     
     public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeInteger(id, forKey: "id")
-        aCoder.encodeObject(values, forKey: "values")
+        aCoder.encodeInteger(id, forKey: "i")
+        aCoder.encodeObject(values, forKey: "v")
+        aCoder.encodeObject(objectID, forKey: "o")
     }
     public required init?(coder aDecoder: NSCoder) {
-        self.id = aDecoder.decodeIntegerForKey("id")
-        self.values = aDecoder.decodeObjectForKey("values") as! [Double]
+        self.id = aDecoder.decodeIntegerForKey("i")
+        self.values = aDecoder.decodeObjectForKey("v") as! [Double]
+        self.objectID = aDecoder.decodeObjectForKey("o") as! NSURL
     }
     
     init(id: Int) {
@@ -152,14 +156,33 @@ class VPTreeTests: XCTestCase {
     }
     
     func testCoder() {
-        let tree = VPTreePaged<Photo>(maxLeafElements: 2, branchingFactor: 2)
-        for i in 0...10 {
-            tree.addElement(Photo(id: i))
+        
+        
+        let tree = VPTreePaged<Photo>(maxLeafElements: 16, branchingFactor: 4)
+        var elements = [Photo]()
+        for i in 0...30000 {
+            elements.append(Photo(id: i))
         }
         
-        let data = NSKeyedArchiver.archivedDataWithRootObject(tree)
+        var start = NSDate()
+        tree.addElements(elements)
+        print("Time to generate Tree: \(-start.timeIntervalSinceNow)")
+        start = NSDate()
         
-        let resultTree = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! VPTreePaged<Photo>
+        let dir = NSSearchPathForDirectoriesInDomains(.CachesDirectory, .UserDomainMask, true).first!.stringByAppendingString("/vptree.data")
+        
+        print(dir)
+        
+        NSKeyedArchiver.archiveRootObject(tree, toFile: dir)
+        
+        print("Time to save Tree: \(-start.timeIntervalSinceNow)")
+        start = NSDate()
+        
+        let resultTree = NSKeyedUnarchiver.unarchiveObjectWithFile(dir) as? VPTreePaged<Photo>
+        
+        print("Time to load Tree: \(-start.timeIntervalSinceNow)")
+        start = NSDate()
+        
         print(resultTree)
     }
     
