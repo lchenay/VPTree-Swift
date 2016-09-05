@@ -14,11 +14,11 @@ precedence 140
 
 public protocol Distance {
     func ~~(lhs: Self, rhs: Self) -> Double
-    func isWithin(distance: Double, of: Self) -> Bool
+    func isWithin(_ distance: Double, of: Self) -> Bool
 }
 extension Distance {
-    public func isWithin(distance: Double, of: Self) -> Bool {
-        return self ~~ of <= distance
+    public func isWithin(_ distance: Double, of: Self) -> Bool {
+        return (self ~~ of) <= distance
     }
 }
 
@@ -40,11 +40,11 @@ internal struct Point<T>: Comparable {
     }
 }
 
-public class SpatialTree<T: Distance>: NSObject, NSCoding {
-    public var nbElementsChecked = 0
-    public var nbNodeChecked = 0
+open class SpatialTree<T: Distance>: NSObject, NSCoding {
+    open var nbElementsChecked = 0
+    open var nbNodeChecked = 0
     
-    public func encodeWithCoder(aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         
     }
     public required init?(coder aDecoder: NSCoder) {
@@ -55,18 +55,18 @@ public class SpatialTree<T: Distance>: NSObject, NSCoding {
         super.init()
     }
     
-    public func addElement(point: T) {
+    open func addElement(_ point: T) {
         fatalError("Implement this function")
     }
 
-    public func addElements(points: [T]) {
+    open func addElements(_ points: [T]) {
         fatalError("Implement this function")
     }
     
-    public func findNeighbors(point: T, limit: Int) -> [T] {
+    open func findNeighbors(_ point: T, limit: Int) -> [T] {
         fatalError("Implement this function")
     }
-    public func findClosest(point: T, maxDistance: Double) -> [T] {
+    open func findClosest(_ point: T, maxDistance: Double) -> [T] {
         fatalError("Implement this function")
     }
 }

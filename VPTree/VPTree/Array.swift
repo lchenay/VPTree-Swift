@@ -8,7 +8,7 @@
 
 import Foundation
 
-internal func trySplit<T: Comparable>(array: [T], nbItemLeft: Int, nbItemRight: Int) -> (Array<T>, Array<T>) {
+internal func trySplit<T: Comparable>(_ array: [T], nbItemLeft: Int, nbItemRight: Int) -> (Array<T>, Array<T>) {
     
     if nbItemLeft == 0 {
         return ([], array)
@@ -21,7 +21,7 @@ internal func trySplit<T: Comparable>(array: [T], nbItemLeft: Int, nbItemRight: 
     left.reserveCapacity(nbItemLeft)
     right.reserveCapacity(nbItemRight)
     
-    let pivot: T = array.sort()[nbItemLeft - 1]
+    let pivot: T = array.sorted()[nbItemLeft - 1]
     for element in array {
         if element < pivot {
             left.append(element)
@@ -32,13 +32,13 @@ internal func trySplit<T: Comparable>(array: [T], nbItemLeft: Int, nbItemRight: 
         }
     }
     
-    left.appendContentsOf(middle)
+    left.append(contentsOf: middle)
     
     return (left, right)
 }
 
 internal extension Array {
-    internal func splitByMedian<T where T: Comparable>() -> ([T], [T]) {
+    internal func splitByMedian<T>() -> ([T], [T]) where T: Comparable {
         let mid = count / 2
         let array: Array<T> = self.map {return $0 as! T}
         return trySplit(array, nbItemLeft: count-mid, nbItemRight: mid)

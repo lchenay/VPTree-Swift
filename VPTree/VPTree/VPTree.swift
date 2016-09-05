@@ -1,41 +1,45 @@
 import Foundation
 
 internal enum VPNode<T: Distance> {
-    case Leaf([T])
-    indirect case Node(T, Double, VPNode<T>, VPNode)
+    case leaf([T])
+    indirect case node(T, Double, VPNode<T>, VPNode)
 }
 
-public class VPTree<T: Distance>: SpatialTree<T> {
+open class VPTree<T: Distance>: SpatialTree<T> {
     internal var firstNode: VPNode<T>
     
     let maxLeafElements = 16
     
     public init(elements: [T]) {
-        firstNode = VPNode.Leaf([])
+        firstNode = VPNode.leaf([])
         super.init()
         self.addElements(elements)
     }
+
+    public required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
-    override public func addElement(point: T) {
+    override open func addElement(_ point: T) {
         firstNode = self.addElements([point], node: firstNode)
     }
     
-    override public func addElements(points: [T]) {
+    override open func addElements(_ points: [T]) {
         firstNode = self.addElements(points, node: firstNode)
     }
     
-    private func addElements(points: [T], node: VPNode<T>) -> VPNode<T> {
+    fileprivate func addElements(_ points: [T], node: VPNode<T>) -> VPNode<T> {
         let pointCount = points.count
         switch node {
-        case .Leaf(var elements):
+        case .leaf(var elements):
             if elements.count + pointCount <= maxLeafElements {
-                for var i = 0 ; i < pointCount ; i++ {
+                for i in 0  ..< pointCount {
                     elements.append(points[i])
                 }
-                return .Leaf(elements)
+                return .leaf(elements)
             } else {
                 var allElements = (points + elements)
-                let vpPoint = allElements.removeAtIndex(0)
+                let vpPoint = allElements.remove(at: 0)
                 
                 let points: [Point<T>] = allElements.map {
                     (item: T) -> Point<T> in
@@ -45,15 +49,15 @@ public class VPTree<T: Distance>: SpatialTree<T> {
                 let (left, right): ([Point<T>], [Point<T>]) = points.splitByMedian()
                 let mu = left.last!.d
                 
-                let leftChild = addElements(left.map {$0.point}, node: VPNode<T>.Leaf([]))
-                let rightChild = addElements(right.map {$0.point}, node: VPNode<T>.Leaf([]))
+                let leftChild = addElements(left.map {$0.point}, node: VPNode<T>.leaf([]))
+                let rightChild = addElements(right.map {$0.point}, node: VPNode<T>.leaf([]))
                 
-                return VPNode<T>.Node(vpPoint, mu, leftChild, rightChild)
+                return VPNode<T>.node(vpPoint, mu, leftChild, rightChild)
             }
-        case .Node(let vpPoint, let mu, let leftChild, let rightChild):
+        case .node(let vpPoint, let mu, let leftChild, let rightChild):
             var toAddLeft = [T]()
             var toAddRight = [T]()
-            for var i = 0 ; i < pointCount ; i++ {
+            for i in 0  ..< pointCount {
                 let point = points[i]
                 if point.isWithin(mu, of: vpPoint) {
                     toAddLeft.append(point)
@@ -62,13 +66,13 @@ public class VPTree<T: Distance>: SpatialTree<T> {
                 }
             }
             
-            return VPNode<T>.Node(
+            return VPNode<T>.node(
                 vpPoint, mu, addElements(toAddLeft, node: leftChild), addElements(toAddRight, node: rightChild)
             )
         }
     }
     
-    private func _neighbors(point: T, maxDistance: Double) -> [T] {
+    fileprivate func _neighbors(_ point: T, maxDistance: Double) -> [T] {
         let tau: Double = maxDistance
         var nodesToTest: [VPNode<T>?] = [firstNode]
         
@@ -76,19 +80,19 @@ public class VPTree<T: Distance>: SpatialTree<T> {
         nbElementsChecked = 0
         nbNodeChecked = 0
         while(nodesToTest.count > 0) {
-            nbNodeChecked++
-            let node = nodesToTest.removeAtIndex(0)!
+            nbNodeChecked += 1
+            let node = nodesToTest.remove(at: 0)!
             switch(node) {
-            case .Leaf(let elements):
+            case .leaf(let elements):
                 let count = elements.count
-                for var i = 0 ; i < count ; i++ {
-                    nbElementsChecked++
+                for i in 0  ..< count {
+                    nbElementsChecked += 1
                     let element = elements[i]
                     if point.isWithin(tau, of: element) {
                         neighbors.append(element)
                     }
                 }
-            case .Node(let vpPoint, let mu, let leftChild, let rightChild):
+            case .node(let vpPoint, let mu, let leftChild, let rightChild):
                 let d = point ~~ vpPoint
                 if d <= tau {
                     neighbors.append(vpPoint)
@@ -115,7 +119,7 @@ public class VPTree<T: Distance>: SpatialTree<T> {
         return neighbors
     }
     
-    private func _neighbors(point: T, limit: Int?) -> [T] {
+    fileprivate func _neighbors(_ point: T, limit: Int?) -> [T] {
         var tau: Double = Double.infinity
         var nodesToTest: [VPNode<T>?] = [firstNode]
         
@@ -124,13 +128,13 @@ public class VPTree<T: Distance>: SpatialTree<T> {
         nbNodeChecked = 0
         
         while(nodesToTest.count > 0) {
-            nbNodeChecked++
-            let node = nodesToTest.removeAtIndex(0)!
+            nbNodeChecked += 1
+            let node = nodesToTest.remove(at: 0)!
             switch(node) {
-            case .Leaf(let elements):
+            case .leaf(let elements):
                 let count = elements.count
-                for var i = 0 ; i < count ; i++ {
-                    nbElementsChecked++
+                for i in 0  ..< count {
+                    nbElementsChecked += 1
                     let element = elements[i]
                     let d = point ~~ element
                     if d <= tau {
@@ -138,7 +142,7 @@ public class VPTree<T: Distance>: SpatialTree<T> {
                         tau = neighbors.biggestWeigth
                     }
                 }
-            case .Node(let vpPoint, let mu, let leftChild, let rightChild):
+            case .node(let vpPoint, let mu, let leftChild, let rightChild):
                 let d = point ~~ vpPoint
                 if d <= tau {
                     neighbors.push(d, item: vpPoint)
@@ -166,11 +170,11 @@ public class VPTree<T: Distance>: SpatialTree<T> {
         return neighbors.items
     }
     
-    public override func findNeighbors(point: T, limit: Int) -> [T] {
+    open override func findNeighbors(_ point: T, limit: Int) -> [T] {
         return _neighbors(point, limit: limit)
     }
     
-    public override func findClosest(point: T, maxDistance: Double) -> [T] {
+    open override func findClosest(_ point: T, maxDistance: Double) -> [T] {
         return _neighbors(point, maxDistance: maxDistance)
     }
 }

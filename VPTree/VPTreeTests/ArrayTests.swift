@@ -25,13 +25,13 @@ class ArrayTests: XCTestCase {
         let array: Array<Int> = [2, 1, 3, 5, 4, 6, 7];
         let (left, right): ([Int], [Int]) = array.splitByMedian()
         
-        XCTAssertTrue(left.indexOf(1) != nil)
-        XCTAssertTrue(left.indexOf(2) != nil)
-        XCTAssertTrue(left.indexOf(3) != nil)
-        XCTAssertTrue(left.indexOf(4) != nil)
+        XCTAssertTrue(left.index(of: 1) != nil)
+        XCTAssertTrue(left.index(of: 2) != nil)
+        XCTAssertTrue(left.index(of: 3) != nil)
+        XCTAssertTrue(left.index(of: 4) != nil)
         
-        XCTAssertTrue(right.indexOf(5) != nil)
-        XCTAssertTrue(right.indexOf(6) != nil)
-        XCTAssertTrue(right.indexOf(7) != nil)
+        XCTAssertTrue(right.index(of: 5) != nil)
+        XCTAssertTrue(right.index(of: 6) != nil)
+        XCTAssertTrue(right.index(of: 7) != nil)
     }
 }

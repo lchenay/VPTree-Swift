@@ -1,77 +1,79 @@
 import Foundation
 
-internal enum VPNodePaged<T: AnyObject where T: Distance> {
-    case Leaf([T])
-    indirect case Node(T, [Double], [VPNodePaged<T>])
+internal enum VPNodePaged<T: AnyObject> where T: Distance {
+    case leaf([T])
+    indirect case node(T, [Double], [VPNodePaged<T>])
     
     var count: Int {
         switch self {
-        case .Leaf(let elements):
+        case .leaf(let elements):
             return elements.count
-        case .Node(_, _, let childs):
-            return childs.reduce(0, combine: { return $0 + $1.count }) + 1
+        case .node(_, _, let childs):
+            return childs.reduce(0, { return $0 + $1.count }) + 1
         }
     }
     
-    internal func encodeWithCoder(aCoder: NSCoder) {
+    internal func encodeWithCoder(_ aCoder: NSCoder) {
         switch self {
-        case .Node(let vpPoint, let mus, let childs):
+        case .node(let vpPoint, let mus, let childs):
             
-            aCoder.encodeObject(vpPoint, forKey: "v")
-            aCoder.encodeObject(mus, forKey: "m")
-            childs.enumerate().forEach {
+            aCoder.encode(vpPoint, forKey: "v")
+            aCoder.encode(mus, forKey: "m")
+            childs.enumerated().forEach {
                 let mutableData = NSMutableData()
-                let archiver = NSKeyedArchiver(forWritingWithMutableData: mutableData)
+                let archiver = NSKeyedArchiver(forWritingWith: mutableData)
             
                 $1.encodeWithCoder(archiver)
                 archiver.finishEncoding()
                 
-                aCoder.encodeObject(mutableData, forKey: "\($0)" )
+                aCoder.encode(mutableData, forKey: "\($0)" )
             }
-        case .Leaf(let elements):
-            aCoder.encodeObject(elements, forKey: "e")
+        case .leaf(let elements):
+            aCoder.encode(elements, forKey: "e")
         }
     }
     
     internal init(coder aDecoder: NSCoder) {
-        if let elemenst = aDecoder.decodeObjectForKey("e") as? [T] {
-            self = VPNodePaged<T>.Leaf(elemenst)
+        if let elemenst = aDecoder.decodeObject(forKey: "e") as? [T] {
+            self = VPNodePaged<T>.leaf(elemenst)
         } else {
             var i = 0;
             var childs = [VPNodePaged<T>]()
-            var childData = aDecoder.decodeObjectForKey("\(i++)") as? NSData
+            var childData = aDecoder.decodeObject(forKey: "\(i)") as? Data
+            i += 1
             
             while childData != nil {
-                let unarchiver = NSKeyedUnarchiver(forReadingWithData: childData!)
+                let unarchiver = NSKeyedUnarchiver(forReadingWith: childData!)
                 childs.append(VPNodePaged<T>(coder: unarchiver))
                 unarchiver.finishDecoding()
                 
-                childData = aDecoder.decodeObjectForKey("\(i++)") as? NSData
+                childData = aDecoder.decodeObject(forKey: "\(i)") as? Data
+                i += 1
             }
             
-            let vpPoint = aDecoder.decodeObjectForKey("v") as! T
-            let mus = aDecoder.decodeObjectForKey("m") as! [Double]
-            self = VPNodePaged<T>.Node(vpPoint, mus, childs)
+            let vpPoint = aDecoder.decodeObject(forKey: "v") as! T
+            let mus = aDecoder.decodeObject(forKey: "m") as! [Double]
+            self = VPNodePaged<T>.node(vpPoint, mus, childs)
         }
     }
 }
 
-public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
+open class VPTreePaged<T: Distance>: SpatialTree<T> where T: AnyObject {
     internal var firstNode: VPNodePaged<T>
     
-    private let maxLeafElements: Int
-    private let branchingFactor: Int
+    fileprivate let maxLeafElements: Int
+    fileprivate let branchingFactor: Int
     
-    public override func encodeWithCoder(aCoder: NSCoder) {
-        super.encodeWithCoder(aCoder)
+    open override func encode(with aCoder: NSCoder) {
+        super.encode(with: aCoder)
         
-        aCoder.encodeInteger(maxLeafElements, forKey: "maxLeafElements")
-        aCoder.encodeInteger(branchingFactor, forKey: "branchingFactor")
+        aCoder.encode(maxLeafElements, forKey: "maxLeafElements")
+        aCoder.encode(branchingFactor, forKey: "branchingFactor")
         firstNode.encodeWithCoder(aCoder)
     }
     public required init?(coder aDecoder: NSCoder) {
-        self.maxLeafElements = aDecoder.decodeIntegerForKey("maxLeafElements")
-        self.branchingFactor = aDecoder.decodeIntegerForKey("branchingFactor")
+        self.maxLeafElements = aDecoder.decodeInteger(forKey: "maxLeafElements")
+        self.branchingFactor = aDecoder.decodeInteger(forKey: "branchingFactor")
         self.firstNode = VPNodePaged(coder: aDecoder)
         
         super.init(coder: aDecoder)
@@ -83,7 +85,7 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
         }
         self.maxLeafElements = maxLeafElements
         self.branchingFactor = branchingFactor
-        self.firstNode = VPNodePaged.Leaf([])
+        self.firstNode = VPNodePaged.leaf([])
         super.init()
     }
     
@@ -92,28 +94,28 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
         self.addElements(elements)
     }
     
-    override public func addElement(point: T) {
+    override open func addElement(_ point: T) {
         firstNode = self.addElements([point], node: firstNode)
     }
     
-    override public func addElements(points: [T]) {
+    override open func addElements(_ points: [T]) {
         firstNode = self.addElements(points, node: firstNode)
     }
     
-    private func addElements(points: [T], node: VPNodePaged<T>) -> VPNodePaged<T> {
+    fileprivate func addElements(_ points: [T], node: VPNodePaged<T>) -> VPNodePaged<T> {
         let pointsCount = points.count
         if pointsCount == 0 {
             return node
         }
         switch node {
-        case .Leaf(var elements):
+        case .leaf(var elements):
             if elements.count + pointsCount <= maxLeafElements {
-                elements.appendContentsOf(points)
-                return .Leaf(elements)
+                elements.append(contentsOf: points)
+                return .leaf(elements)
             } else {
                 var allElements = (points + elements)
                 //Random get of the VP points
-                let vpPoint = allElements.removeAtIndex(0)
+                let vpPoint = allElements.remove(at: 0)
                 var points: [Point<T>] = allElements.map {
                     (item: T) -> Point<T> in
                     let d = item ~~ vpPoint
@@ -122,7 +124,7 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
                 var childs = [VPNodePaged<T>]()
                 var mu = [Double]()
                 
-                for var i = 0 ; i < branchingFactor - 1 ; i++ {
+                for i in 0  ..< branchingFactor - 1 {
                     let count = points.count
                     if count == 0 {
                         break
@@ -134,20 +136,20 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
                     let (left, right) = trySplit(points, nbItemLeft: nbItemLeft, nbItemRight: count-nbItemLeft)
                     points = right
                     mu.append(left.last!.d)
-                    childs.append(addElements(left.map {$0.point}, node: VPNodePaged<T>.Leaf([])))
+                    childs.append(addElements(left.map {$0.point}, node: VPNodePaged<T>.leaf([])))
                 }
-                childs.append(addElements(points.map {$0.point}, node: VPNodePaged<T>.Leaf([])))
+                childs.append(addElements(points.map {$0.point}, node: VPNodePaged<T>.leaf([])))
                 mu.append(Double.infinity)
                 
-                return VPNodePaged<T>.Node(vpPoint, mu, childs)
+                return VPNodePaged<T>.node(vpPoint, mu, childs)
             }
-        case .Node(let vpPoint, let mus, var childs):
-            var toAddInNodes = Array<Array<T>>(count: branchingFactor, repeatedValue: Array<T>())
+        case .node(let vpPoint, let mus, var childs):
+            var toAddInNodes = Array<Array<T>>(repeating: Array<T>(), count: branchingFactor)
             let musCount = mus.count
-            for var i = 0 ; i < pointsCount ; i++ {
+            for i in 0  ..< pointsCount {
                 let point = points[i]
                 let d = point ~~ vpPoint
-                for var j = 0 ; j < musCount ; j++ {
+                for j in 0  ..< musCount {
                     let mu = mus[j]
                     if d <= mu {
                         toAddInNodes[j].append(point)
@@ -156,15 +158,15 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
                 }
             }
             
-            for var i = 0 ; i < musCount ; i++ {
+            for i in 0  ..< musCount {
                 childs[i] = addElements(toAddInNodes[i], node: childs[i])
             }
             
-            return VPNodePaged<T>.Node(vpPoint, mus, childs)
+            return VPNodePaged<T>.node(vpPoint, mus, childs)
         }
     }
     
-    private func _neighbors(point: T, limit: Int) -> [T] {
+    fileprivate func _neighbors(_ point: T, limit: Int) -> [T] {
         var tau: Double = Double.infinity
         var nodesToTest: [VPNodePaged<T>] = [firstNode]
         
@@ -172,38 +174,40 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
         nbElementsChecked = 0
         nbNodeChecked = 0
         while(nodesToTest.count > 0) {
-            nbNodeChecked++
+            nbNodeChecked += 1
             let node = nodesToTest.removeLast()
             switch(node) {
-            case .Leaf(let elements):
+            case .leaf(let elements):
                 let count = elements.count
-                for var i = 0 ; i < count ; i++ {
+                for i in 0  ..< count {
                     let element = elements[i]
                     let d = point ~~ element
-                    nbElementsChecked++
+                    nbElementsChecked += 1
                     if d <= tau {
                         neighbors.push(d, item: element)
                         tau = neighbors.biggestWeigth
                     }
                 }
-            case .Node(let vpPoint, let mus, let childs):
+            case .node(let vpPoint, let mus, let childs):
                 let dist = point ~~ vpPoint
                 if dist <= tau {
                     neighbors.push(dist, item: vpPoint)
                     tau = neighbors.biggestWeigth
                 }
                 var i = 0
-                for ; i < branchingFactor - 1 ; i++ {
+                while i < branchingFactor - 1 {
                     if tau + mus[i] >= dist {
                         break
                     }
+                    i += 1
                 }
                 
-                for ; i < branchingFactor ; i++ {
+                while i < branchingFactor {
                     nodesToTest.append(childs[i])
                     if (tau + dist < mus[i]) {
                         break;
                     }
+                    i += 1
                 }
             }
         }
@@ -211,7 +215,7 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
         return neighbors.items
     }
     
-    private func _neighbors(point: T, maxDistance: Double) -> [T] {
+    fileprivate func _neighbors(_ point: T, maxDistance: Double) -> [T] {
         let tau: Double = maxDistance ?? Double.infinity
         var nodesToTest: [VPNodePaged<T>] = [firstNode]
         
@@ -219,19 +223,19 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
         nbElementsChecked = 0
         nbNodeChecked = 0
         while(nodesToTest.count > 0) {
-            nbNodeChecked++
+            nbNodeChecked += 1
             let node = nodesToTest.removeLast()
             switch(node) {
-            case .Leaf(let elements):
+            case .leaf(let elements):
                 let count = elements.count
-                for var i = 0 ; i < count ; i++ {
+                for i in 0  ..< count {
                     let element = elements[i]
-                    nbElementsChecked++
+                    nbElementsChecked += 1
                     if point.isWithin(tau, of: element) {
                         neighbors.append(element)
                     }
                 }
-            case .Node(let vpPoint, let mus, let childs):
+            case .node(let vpPoint, let mus, let childs):
                 let dist = point ~~ vpPoint
                 if dist <= tau {
                     neighbors.append(vpPoint)
@@ -239,13 +243,13 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
                 var i = 0
                 let count = childs.count
 
-                for ; i < count - 1 ; i++ {
+                while i < count - 1 {
                     if tau + mus[i] >= dist {
                         break
                     }
                 }
                 
-                for ; i < count ; i++ {
+                while i < count {
                     nodesToTest.append(childs[i])
                     if (tau + dist < mus[i]) {
                         break;
@@ -257,11 +261,11 @@ public class VPTreePaged<T: Distance where T: AnyObject>: SpatialTree<T> {
         return neighbors
     }
 
-    public override func findNeighbors(point: T, limit: Int) -> [T] {
+    open override func findNeighbors(_ point: T, limit: Int) -> [T] {
         return _neighbors(point, limit: limit)
     }
 
-    public override func findClosest(point: T, maxDistance: Double) -> [T] {
+    open override func findClosest(_ point: T, maxDistance: Double) -> [T] {
         return _neighbors(point, maxDistance: maxDistance)
     }
 }

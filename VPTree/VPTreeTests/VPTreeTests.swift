@@ -10,7 +10,7 @@ extension CGPoint: Distance {
     
 }
 
-func hammingWeight(x: UInt64) -> Int {
+func hammingWeight(_ x: UInt64) -> Int {
     var i = x
     i = i - ((i >> 1) & 0x55555555);
     i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
@@ -19,51 +19,51 @@ func hammingWeight(x: UInt64) -> Int {
 
 func random64() -> UInt64 {
     var rnd : UInt64 = 0
-    arc4random_buf(&rnd, Int(sizeofValue(rnd)))
+    arc4random_buf(&rnd, Int(MemoryLayout<UInt64>.size))
     return rnd
 }
 
 public func ~~(left: Photo, right: Photo) -> Double {
     var sse = 0.0
-    var l = left.values.generate()
-    var r = right.values.generate()
-    while let p1 = l.next(), p2 = r.next() {
+    var l = left.values.makeIterator()
+    var r = right.values.makeIterator()
+    while let p1 = l.next(), let p2 = r.next() {
         sse += pow(p1 - p2, 2)
     }
     
     return pow(sse, 0.5)
 }
 
-public class Photo: NSObject, NSCoding {
+open class Photo: NSObject, NSCoding {
     let id: Int
     var values = [Double]()
-    var objectID = NSURL(string: "https://www.sundayhq.com")!
+    var objectID = URL(string: "https://www.sundayhq.com")!
     
-    public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeInteger(id, forKey: "i")
-        aCoder.encodeObject(values, forKey: "v")
-        aCoder.encodeObject(objectID, forKey: "o")
+    open func encode(with aCoder: NSCoder) {
+        aCoder.encode(id, forKey: "i")
+        aCoder.encode(values, forKey: "v")
+        aCoder.encode(objectID, forKey: "o")
     }
     public required init?(coder aDecoder: NSCoder) {
-        self.id = aDecoder.decodeIntegerForKey("i")
-        self.values = aDecoder.decodeObjectForKey("v") as! [Double]
-        self.objectID = aDecoder.decodeObjectForKey("o") as! NSURL
+        self.id = aDecoder.decodeInteger(forKey: "i")
+        self.values = aDecoder.decodeObject(forKey: "v") as! [Double]
+        self.objectID = aDecoder.decodeObject(forKey: "o") as! URL
     }
     
     init(id: Int) {
         self.id = id
-        for var i = 0; i < 42 ; i++ {
+        for i in 0 ..< 42 {
             values.append((Double(arc4random()) / Double(UINT32_MAX)) * 8 - 1)
         }
     }
 }
 
 extension Photo: Distance {
-    public func isWithin(distance: Double, of: Photo) -> Bool {
+    public func isWithin(_ distance: Double, of: Photo) -> Bool {
         var sse = 0.0
         let squareDist = pow(distance, 2)
-        var l = self.values.generate()
-        var r = of.values.generate()
+        var l = self.values.makeIterator()
+        var r = of.values.makeIterator()
         while let p1 = l.next(), let p2 = r.next() {
             sse += pow((p1) - (p2 ), 2)
             if sse > squareDist {
@@ -121,12 +121,12 @@ class VPTreeTests: XCTestCase {
     }
     
     func testTryBest() {
-        for var j = 2; j < 30 ; j++ {
-            for var i = j ; i < 100 ; i += 5 {
-                let start = NSDate()
+        for j in 2 ..< 30 {
+            for i in stride(from: j, to: 100, by: 5) {
+                let start = Date()
                 
                 let tree = VPTreePaged<Photo>(maxLeafElements: i, branchingFactor: j)
-                for (var i = 0 ; i < 200 ; i++) {
+                for i in 0..<200 {
                     let photo = Photo(id: i);
                     tree.addElement(photo)
                     tree.findClosest(photo, maxDistance: 21)
@@ -138,11 +138,11 @@ class VPTreeTests: XCTestCase {
     }
 
     func testPerformanceOfHamming() {
-        self.measureBlock() {
+        self.measure() {
             NSLog("start")
             let tree1 = VPTreePaged<Photo>(maxLeafElements: 16, branchingFactor: 8)
             let tree2 = VPTree<Photo>(elements: [])
-            for (var i = 0 ; i < 500 ; i++) {
+            for i in 0..<500 {
                 print(i)
                 let photo = Photo(id: i);
                 tree1.addElement(photo)
@@ -164,36 +164,37 @@ class VPTreeTests: XCTestCase {
             elements.append(Photo(id: i))
         }
         
-        var start = NSDate()
+        var start = Date()
         tree.addElements(elements)
         print("Time to generate Tree: \(-start.timeIntervalSinceNow)")
-        start = NSDate()
+        start = Date()
         
-        let dir = NSSearchPathForDirectoriesInDomains(.CachesDirectory, .UserDomainMask, true).first!.stringByAppendingString("/vptree.data")
+        let dir = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first! + "/vptree.data"
         
         print(dir)
         
         NSKeyedArchiver.archiveRootObject(tree, toFile: dir)
         
         print("Time to save Tree: \(-start.timeIntervalSinceNow)")
-        start = NSDate()
+        start = Date()
         
-        let resultTree = NSKeyedUnarchiver.unarchiveObjectWithFile(dir) as? VPTreePaged<Photo>
+        let resultTree = NSKeyedUnarchiver.unarchiveObject(withFile: dir) as? VPTreePaged<Photo>
         
         print("Time to load Tree: \(-start.timeIntervalSinceNow)")
-        start = NSDate()
+        start = Date()
         
         print(resultTree)
     }
     
     func testPlayGround() {
-        func toto(left: PHash, right: PHash) -> Double {
+        func toto(_ left: PHash, right: PHash) -> Double {
             var sse = 0.0
             var l = left.values
             var r = right.values
             var i = 0
-            while (i++ < 42) {
-                sse += pow(r.memory - l.memory , 2)
+            while (i < 42) {
+                i += 1
+                sse += pow(r.pointee - l.pointee , 2)
                 l = l.successor()
                 r = r.successor()
             }
@@ -201,11 +202,11 @@ class VPTreeTests: XCTestCase {
         }
         
         class PHash {
-            var values: UnsafeMutablePointer<Double> = UnsafeMutablePointer<Double>.alloc(42)
+            var values: UnsafeMutablePointer<Double> = UnsafeMutablePointer<Double>.allocate(capacity: 42)
             init() {
                 var pt = values
-                for var i = 0; i < 42 ; i++ {
-                    pt.memory = (Double(arc4random()) / Double(UINT32_MAX))
+                for _ in 0 ..< 42 {
+                    pt.pointee = (Double(arc4random()) / Double(UINT32_MAX))
                     pt = pt.successor()
                 }
             }
@@ -213,8 +214,8 @@ class VPTreeTests: XCTestCase {
         
         let p1 = PHash()
         let p2 = PHash()
-        let time = NSDate()
-        for var i = 0 ; i < 1000000 ; i++ {
+        let time = Date()
+        for _ in 0  ..< 1000000 {
             toto(p1, right: p2)
         }
         
