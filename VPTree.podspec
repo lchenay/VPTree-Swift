@@ -6,4 +6,7 @@ Pod::Spec.new do |s|
   s.source_files = "VPTree/VPTree/*"
   s.frameworks = "Foundation"
   s.requires_arc = true
+  s.authors = { 'Laurent Chenay' => 'lchenay@gmail.com' }
+  s.homepage = "https://github.com/lchenay/VPTree-Swift"
+  s.summary = "A quick implementation of VPTree in swift"
 end
