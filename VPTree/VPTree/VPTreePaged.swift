@@ -247,6 +247,7 @@ open class VPTreePaged<T: Distance>: SpatialTree<T> where T: AnyObject {
                     if tau + mus[i] >= dist {
                         break
                     }
+                    i += 1
                 }
                 
                 while i < count {
@@ -254,6 +255,7 @@ open class VPTreePaged<T: Distance>: SpatialTree<T> where T: AnyObject {
                     if (tau + dist < mus[i]) {
                         break;
                     }
+                    i += 1
                 }
             }
         }

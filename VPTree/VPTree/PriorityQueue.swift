@@ -1,24 +1,4 @@
 import Foundation
-fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l < r
-  case (nil, _?):
-    return true
-  default:
-    return false
-  }
-}
-
-fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l > r
-  default:
-    return rhs < lhs
-  }
-}
-
 
 class PriorityQueue<T> {
     fileprivate var _items: [(weight: Double, item: T)] = []
@@ -43,7 +23,7 @@ class PriorityQueue<T> {
         
         _items.insert((weight: weight, item: item), at: index)
         
-        if limit != nil && _items.count > limit {
+        if limit != nil && _items.count > limit! {
             _items.removeLast()
         }
     }
